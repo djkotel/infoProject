@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>КлиматПрогноз РФ</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Яндекс.Карты API (вставьте свой ключ) -->
+<script src="https://api-maps.yandex.ru/2.1/?apikey=c253e384-e057-4288-aa9f-37e2ea00ad2d_api&lang=ru_RU" type="text/javascript"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;color:#fff}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 4s ease}
+.bg-winter-night{background:linear-gradient(150deg,#020818,#0a1628,#0d1f3c)}
+.bg-winter-morning{background:linear-gradient(150deg,#1a2a4a,#243456,#3a5580)}
+.bg-winter-day{background:linear-gradient(150deg,#1e3a5f,#2952a3,#3d6cc0)}
+.bg-winter-evening{background:linear-gradient(150deg,#0d1b35,#1a2a55,#2a3d7a)}
+.bg-spring-night{background:linear-gradient(150deg,#0a1520,#0d2015,#152b1e)}
+.bg-spring-morning{background:linear-gradient(150deg,#1a3d2b,#3a7d4f,#87ceeb)}
+.bg-spring-day{background:linear-gradient(150deg,#0d4a2f,#1a6b45,#2ecc71)}
+.bg-spring-evening{background:linear-gradient(150deg,#2d1b4e,#8b4c8c,#f4a261)}
+.bg-summer-night{background:linear-gradient(150deg,#020a0f,#041520,#071e2a)}
+.bg-summer-morning{background:linear-gradient(150deg,#1a4060,#2196f3,#4caf50)}
+.bg-summer-day{background:linear-gradient(150deg,#0d3b1e,#1a6b45,#1565c0)}
+.bg-summer-evening{background:linear-gradient(150deg,#1a0a0f,#c0392b,#1a3a6c)}
+.bg-autumn-night{background:linear-gradient(150deg,#120808,#1e1008,#2a1510)}
+.bg-autumn-morning{background:linear-gradient(150deg,#2c1810,#8b4513,#daa520)}
+.bg-autumn-day{background:linear-gradient(150deg,#4a2800,#8b5a00,#d4a000)}
+.bg-autumn-evening{background:linear-gradient(150deg,#0f0505,#4a1500,#8b2500)}
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.45}
+#shell{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column}
+/* topbar */
+#topbar{height:52px;flex-shrink:0;display:flex;align-items:center;padding:0 1.4rem;background:rgba(0,0,0,.38);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);gap:1rem}
+.logo{font-family:'Unbounded',sans-serif;font-size:.88rem;font-weight:600;letter-spacing:.04em;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#time-badge{font-size:.72rem;color:rgba(255,255,255,.58);display:flex;align-items:center;gap:5px;margin-left:auto}
+#burger{display:none;background:none;border:none;color:#fff;font-size:1.35rem;cursor:pointer;padding:0 .4rem}
+/* tabbar */
+#tabbar{height:46px;flex-shrink:0;display:flex;align-items:stretch;background:rgba(0,0,0,.22);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);padding:0 .5rem;gap:.1rem;overflow-x:auto;scrollbar-width:none}
+#tabbar::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;gap:6px;padding:0 1rem;cursor:pointer;background:none;border:none;color:rgba(255,255,255,.42);font-family:'Inter',sans-serif;font-size:.79rem;font-weight:500;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;flex-shrink:0}
+.tab:hover{color:rgba(255,255,255,.8)}
+.tab.active{color:#fff;border-bottom-color:rgba(255,255,255,.75)}
+.tab-ico{font-size:.95rem}
+/* mobile drawer */
+#mobile-drawer{display:none;position:fixed;top:98px;left:0;right:0;z-index:200;background:rgba(3,7,16,.94);backdrop-filter:blur(22px);border-bottom:1px solid rgba(255,255,255,.09);flex-direction:column}
+#mobile-drawer.open{display:flex}
+.m-tab{padding:.78rem 1.4rem;font-size:.87rem;color:rgba(255,255,255,.68);cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)}
+.m-tab:hover,.m-tab.active{color:#fff;background:rgba(255,255,255,.07)}
+/* content */
+#content{flex:1;overflow:hidden;position:relative}
+.panel{position:absolute;inset:0;display:none;overflow:hidden}
+.panel.active{display:flex;flex-direction:column}
+.p-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1.1rem 1.4rem 1.5rem}
+.p-body::-webkit-scrollbar{width:4px}
+.p-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:2px}
+/* glass */
+.g{background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.13);border-radius:13px}
+.gd{background:rgba(0,0,0,.3);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.09);border-radius:13px}
+/* home */
+#home-panel .p-body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%}
+.home-title{font-family:'Unbounded',sans-serif;font-size:clamp(1.4rem,3.5vw,2.5rem);font-weight:700;text-align:center;line-height:1.15;margin-bottom:.7rem;background:linear-gradient(135deg,#fff,rgba(255,255,255,.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-sub{color:rgba(255,255,255,.45);text-align:center;max-width:520px;font-size:.83rem;line-height:1.65;margin-bottom:2rem}
+.home-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.9rem;max-width:1050px;width:100%}
+@media(max-width:900px){.home-cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.home-cards{grid-template-columns:1fr 1fr}}
+.hcard{padding:1.4rem .9rem;cursor:pointer;text-align:center;transition:transform .25s,background .25s}
+.hcard:hover{background:rgba(255,255,255,.13);transform:translateY(-5px)}
+.hcard-ico{font-size:2.2rem;margin-bottom:.65rem;display:block}
+.hcard-title{font-family:'Unbounded',sans-serif;font-size:.7rem;font-weight:600;margin-bottom:.35rem}
+.hcard-desc{font-size:.68rem;color:rgba(255,255,255,.42);line-height:1.5}
+/* controls */
+.ctrl-panel{display:flex;flex-direction:column;gap:.72rem;padding:1.1rem}
+.cg{display:flex;flex-direction:column;gap:.28rem}
+.clabel{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.36)}
+.gsel{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.17);color:#fff;padding:.44rem .78rem;border-radius:8px;font-family:'Inter',sans-serif;font-size:.79rem;cursor:pointer;appearance:none;-webkit-appearance:none;width:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 9 9'%3E%3Cpath fill='rgba(255,255,255,.38)' d='M4.5 7L0 2h9z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:1.7rem}
+.gsel option{background:#131825;color:#fff}
+.gsel:focus{outline:none;border-color:rgba(255,255,255,.44)}
+.btn-p{padding:.44rem .85rem;border-radius:8px;cursor:pointer;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Inter',sans-serif;font-size:.77rem;font-weight:500;transition:all .2s;width:100%}
+.btn-p:hover{background:rgba(255,255,255,.19)}
+.btn-g{padding:.44rem .85rem;border-radius:8px;cursor:pointer;background:rgba(46,204,113,.13);border:1px solid rgba(46,204,113,.3);color:#2ecc71;font-family:'Inter',sans-serif;font-size:.77rem;font-weight:500;transition:all .2s;width:100%}
+.btn-g:hover{background:rgba(46,204,113,.23)}
+.sval{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;color:#fff;margin-bottom:.12rem}
+.slabel{font-size:.62rem;color:rgba(255,255,255,.38)}
+.strend{font-size:.66rem;margin-top:.12rem}
+.chart-ttl{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.36);margin-bottom:.48rem}
+.chart-wrap{position:relative;width:100%;height:230px}
+.fcast-strip{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.65rem}
+.fci{flex:1;min-width:62px;background:rgba(255,255,255,.05);border-radius:8px;padding:.48rem .55rem;text-align:center}
+.fci-yr{font-size:.58rem;color:rgba(255,255,255,.35);margin-bottom:.12rem}
+.fci-val{font-size:.86rem;font-weight:600;color:#fff}
+.fci-d{font-size:.58rem;margin-top:.08rem}
+/* weather */
+.loc-strip{display:flex;gap:.42rem;flex-wrap:wrap;margin-bottom:.82rem}
+.ltab{padding:.32rem .85rem;border-radius:100px;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.58);font-size:.75rem;transition:all .2s}
+.ltab.active{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.35);color:#fff;font-weight:500}
+.evt-strip{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.82rem}
+.echip{padding:.3rem .75rem;border-radius:100px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.56);font-size:.72rem;transition:all .2s}
+.echip.active{background:rgba(100,200,255,.14);border-color:rgba(100,200,255,.36);color:#64c8ff}
+.days-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:.42rem;margin-bottom:.82rem}
+@media(max-width:480px){.days-strip{grid-template-columns:repeat(4,1fr)}}
+.dcard{padding:.58rem .32rem;text-align:center;cursor:pointer;transition:all .2s;border-radius:9px}
+.dcard.sel{background:rgba(255,255,255,.17)!important}
+.dname{font-size:.58rem;color:rgba(255,255,255,.4);margin-bottom:.22rem}
+.dicon{font-size:1.35rem;margin-bottom:.18rem}
+.dtemp{font-size:.76rem;font-weight:600;color:#fff}
+.dprec{font-size:.57rem;color:rgba(100,200,255,.72);margin-top:.1rem}
+.w-layout{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:700px){.w-layout{grid-template-columns:1fr}}
+.verdict-box{padding:1.2rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:145px}
+.vicon{font-size:2.7rem;margin-bottom:.55rem}
+.vtxt{font-family:'Unbounded',sans-serif;font-size:.88rem;font-weight:600;margin-bottom:.42rem}
+.vfav{color:#54d9a8}.vunf{color:#ff6b6b}.vmrg{color:#ffd166}
+.vdesc{font-size:.73rem;color:rgba(255,255,255,.55);line-height:1.55;max-width:265px}
+.crit-row{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.65rem;justify-content:center}
+.crit-tag{padding:.18rem .55rem;border-radius:100px;font-size:.6rem;border:1px solid}
+.crit-ok{background:rgba(84,217,168,.11);border-color:rgba(84,217,168,.28);color:#54d9a8}
+.crit-no{background:rgba(255,107,107,.11);border-color:rgba(255,107,107,.28);color:#ff6b6b}
+.params-box{padding:.95rem 1.05rem}
+.pttl{font-size:.63rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.36);margin-bottom:.55rem}
+.prow{padding:.36rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.prow:last-child{border-bottom:none}
+.prow-head{display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px}
+.prow-name{color:rgba(255,255,255,.5)}.prow-val{color:#fff;font-weight:500}
+.pbar{height:3px;border-radius:2px;background:rgba(255,255,255,.07)}
+.pbfill{height:100%;border-radius:2px;transition:width .5s ease}
+.rec-box{padding:.85rem 1.05rem}
+.rec-ttl{font-size:.63rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.36);margin-bottom:.48rem}
+.ritem{display:flex;gap:.55rem;align-items:flex-start;padding:.36rem 0;border-bottom:1px solid rgba(255,255,255,.044);font-size:.73rem;color:rgba(255,255,255,.6);line-height:1.5}
+.ritem:last-child{border-bottom:none}
+/* harvest */
+.cat-strip{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.85rem}
+.cbtn{padding:.28rem .75rem;border-radius:100px;cursor:pointer;font-size:.71rem;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);transition:all .2s}
+.cbtn.active{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff}
+.cal-wrap{overflow-x:auto}
+.cal-grid{min-width:620px}
+.cal-head{display:grid;grid-template-columns:128px repeat(12,1fr);gap:2px;margin-bottom:2px}
+.mhd{text-align:center;font-size:.56rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.03em;padding:3px 0}
+.cal-body{display:flex;flex-direction:column;gap:2px}
+.crow{display:grid;grid-template-columns:128px repeat(12,1fr);gap:2px;align-items:center}
+.cname{font-size:.69rem;color:rgba(255,255,255,.68);padding:2px 5px;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ce{height:20px;border-radius:3px;transition:transform .15s;cursor:default}
+.ce:hover{transform:scaleY(1.38)}
+.cempty{background:rgba(255,255,255,.03)}
+.cal-legend{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.85rem}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.68rem;color:rgba(255,255,255,.46)}
+.leg-dot{width:11px;height:11px;border-radius:3px}
+.cat-v .cepeak{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.cat-v .cepartial{background:rgba(46,180,96,.36)}
+.cat-f .cepeak{background:linear-gradient(90deg,#c0392b,#e74c3c)}
+.cat-f .cepartial{background:rgba(192,57,43,.36)}
+.cat-b .cepeak{background:linear-gradient(90deg,#8e44ad,#9b59b6)}
+.cat-b .cepartial{background:rgba(142,68,173,.36)}
+.cat-g .cepeak{background:linear-gradient(90deg,#d68910,#f39c12)}
+.cat-g .cepartial{background:rgba(214,137,16,.36)}
+.cat-m .cepeak{background:linear-gradient(90deg,#6d4c41,#8d6e63)}
+.cat-m .cepartial{background:rgba(109,76,65,.36)}
+.cat-h .cepeak{background:linear-gradient(90deg,#0097a7,#00bcd4)}
+.cat-h .cepartial{background:rgba(0,151,167,.36)}
+.cat-r .cepeak{background:linear-gradient(90deg,#b71c1c,#ef5350)}
+.cat-r .cepartial{background:rgba(183,28,28,.36)}
+.cur-month{box-shadow:inset 0 0 0 1.5px rgba(255,210,50,.65)!important}
+/* fishing */
+.yandex-map-wrap{position:relative;overflow:hidden;border-radius:13px;min-height:320px;background:rgba(0,30,60,.4);border:1px solid rgba(255,255,255,.1)}
+#yandex-map{width:100%;height:100%;min-height:320px}
+.fish-layout{display:grid;grid-template-columns:1fr 290px;gap:1rem;height:calc(100% - 2px)}
+@media(max-width:820px){.fish-layout{grid-template-columns:1fr;height:auto}}
+.fish-sidebar{display:flex;flex-direction:column;gap:.75rem;min-height:0;overflow-y:auto}
+.fish-sidebar::-webkit-scrollbar{width:3px}
+.fish-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:2px}
+.fish-zone-card{padding:.88rem .95rem}
+.fz-title{font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:600;margin-bottom:.22rem;color:#fff}
+.fz-sub{font-size:.68rem;color:rgba(255,255,255,.42);margin-bottom:.65rem;line-height:1.4}
+.fish-list{display:flex;flex-direction:column;gap:.42rem}
+.fish-row{display:flex;align-items:center;gap:.65rem;padding:.42rem .5rem;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:background .2s}
+.fish-row:hover,.fish-row.sf{background:rgba(100,200,255,.11);border-color:rgba(100,200,255,.24)}
+.fish-emo{font-size:1.2rem;flex-shrink:0}
+.fish-name{font-size:.76rem;font-weight:500;color:#fff}
+.fish-peak{font-size:.62rem;color:rgba(255,255,255,.42);margin-top:.08rem}
+.sbars{display:flex;gap:1px;margin-top:.18rem}
+.sb{height:5px;flex:1;border-radius:2px}
+.sb0{background:rgba(255,255,255,.07)}
+.sb1{background:#64b5f6}.sb2{background:#81c784}.sb3{background:#ffb74d}.sb4{background:#ce93d8}
+.month-strip{display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.78rem}
+.mchip{padding:.22rem .55rem;border-radius:100px;cursor:pointer;font-size:.65rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.48);transition:all .2s}
+.mchip.active{background:rgba(100,200,255,.17);border-color:rgba(100,200,255,.38);color:#64c8ff}
+.fish-detail{padding:.85rem .95rem;border-top:1px solid rgba(255,255,255,.07)}
+.fd-title{font-size:.8rem;font-weight:600;color:#fff;margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem}
+.fd-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.55rem}
+.fd-item{background:rgba(255,255,255,.05);border-radius:7px;padding:.4rem .5rem}
+.fd-l{font-size:.6rem;color:rgba(255,255,255,.36);margin-bottom:.12rem}
+.fd-v{font-size:.74rem;font-weight:500;color:#fff}
+.fd-tips{font-size:.7rem;color:rgba(255,255,255,.52);line-height:1.55}
+/* arc layout */
+.arc-layout{display:grid;grid-template-columns:215px 1fr;gap:1rem;height:100%}
+@media(max-width:760px){.arc-layout{grid-template-columns:1fr;height:auto}}
+/* animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fadeUp .32s ease forwards}
+.d1{animation-delay:.06s;opacity:0}.d2{animation-delay:.12s;opacity:0}.d3{animation-delay:.18s;opacity:0}.d4{animation-delay:.23s;opacity:0}
+@media(max-width:580px){.tab .tab-lbl{display:none}.tab{padding:0 .7rem}}
+</style>
+</head>
+<body>
+<div class="bg-layer" id="bg-main"></div>
+<canvas id="particles"></canvas>
+<div id="shell">
+  <div id="topbar">
+    <div class="logo">🌍 <span>КлиматПрогноз</span></div>
+    <div id="time-badge"><span id="s-emo">❄️</span><span id="s-time"></span></div>
+    <button id="burger" onclick="toggleDrawer()">☰</button>
+  </div>
+  <div id="tabbar">
+    <button class="tab active" id="tab-home"    onclick="go('home')">   <span class="tab-ico">🏠</span><span class="tab-lbl">Главная</span></button>
+    <button class="tab"        id="tab-arctic"  onclick="go('arctic')"> <span class="tab-ico">🧊</span><span class="tab-lbl">Климат Арктики</span></button>
+    <button class="tab"        id="tab-weather" onclick="go('weather')"><span class="tab-ico">🎯</span><span class="tab-lbl">Мероприятия</span></button>
+    <button class="tab"        id="tab-harvest" onclick="go('harvest')"><span class="tab-ico">🌾</span><span class="tab-lbl">Урожаи</span></button>
+    <button class="tab"        id="tab-fishing" onclick="go('fishing')"><span class="tab-ico">🎣</span><span class="tab-lbl">Рыбалка</span></button>
+  </div>
+  <div id="mobile-drawer">
+    <div class="m-tab" onclick="go('home');closeDrawer()">🏠 Главная</div>
+    <div class="m-tab" onclick="go('arctic');closeDrawer()">🧊 Климат Арктики</div>
+    <div class="m-tab" onclick="go('weather');closeDrawer()">🎯 Мероприятия</div>
+    <div class="m-tab" onclick="go('harvest');closeDrawer()">🌾 Урожаи</div>
+    <div class="m-tab" onclick="go('fishing');closeDrawer()">🎣 Рыбалка</div>
+  </div>
+  <div id="content">
+
+    <!-- ══════════ HOME ══════════ -->
+    <div class="panel active" id="home-panel">
+      <div class="p-body">
+        <h1 class="home-title fi">КлиматПрогноз РФ</h1>
+        <p class="home-sub fi d1">Арктические тренды · прогноз погоды для мероприятий · сезонный урожай · карта рыбалки по акваториям</p>
+        <div class="home-cards fi d2">
+          <div class="g hcard" onclick="go('arctic')"><span class="hcard-ico">🧊</span><div class="hcard-title">Климат Арктики</div><div class="hcard-desc">Тренды температуры, ледового покрова и осадков. Прогноз до 2035. Экспорт Excel.</div></div>
+          <div class="g hcard" onclick="go('weather')"><span class="hcard-ico">🎯</span><div class="hcard-title">Мероприятия</div><div class="hcard-desc">Прогноз для 3 локаций Москвы и МО. Оценка условий с учётом типа активности.</div></div>
+          <div class="g hcard" onclick="go('harvest')"><span class="hcard-ico">🌾</span><div class="hcard-title">Урожаи</div><div class="hcard-desc">60+ культур: овощи, фрукты, ягоды, грибы, злаки, зелень, бобовые по месяцам.</div></div>
+          <div class="g hcard" onclick="go('fishing')"><span class="hcard-ico">🎣</span><div class="hcard-title">Карта рыбалки</div><div class="hcard-desc">Поклёвки рыб по акваториям РФ: Балтика, Волга, Байкал, Азов, Дальний Восток и др.</div></div>
+          <div class="g hcard" style="opacity:.55;cursor:default"><span class="hcard-ico">🛰️</span><div class="hcard-title">Спутник</div><div class="hcard-desc">Спутниковые данные — скоро</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ ARCTIC ══════════ -->
+    <div class="panel" id="arctic-panel">
+      <div class="p-body">
+        <div class="arc-layout">
+          <div class="gd ctrl-panel">
+            <div style="font-size:.78rem;font-weight:600;color:rgba(255,255,255,.78);margin-bottom:.3rem">Параметры анализа</div>
+            <div class="cg"><label class="clabel">Регион</label>
+              <select class="gsel" id="arc-region" onchange="arcUpdate()">
+                <option value="nen">Ненецкий АО (Нарьян-Мар)</option>
+                <option value="yam">Ямало-Ненецкий АО (Салехард)</option>
+                <option value="kha">Ханты-Мансийский АО</option>
+                <option value="mur">Мурманская область</option>
+                <option value="arc">Архангельская область</option>
+                <option value="cht">Чукотский АО (Анадырь)</option>
+              </select>
+            </div>
+            <div class="cg"><label class="clabel">Параметр</label>
+              <select class="gsel" id="arc-param" onchange="arcUpdate()">
+                <option value="temp">Среднегодовая температура</option>
+                <option value="ice">Ледовый покров</option>
+                <option value="precip">Осадки</option>
+              </select>
+            </div>
+            <div class="cg"><label class="clabel">Окно сглаживания</label>
+              <select class="gsel" id="arc-win" onchange="arcUpdate()">
+                <option value="3">3 года</option>
+                <option value="5" selected>5 лет</option>
+                <option value="10">10 лет</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.45rem;margin-top:.35rem">
+              <button class="btn-g" onclick="arcExport()">📥 Экспорт в Excel</button>
+            </div>
+            <div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.4rem">
+              <div class="gd" style="padding:.62rem .8rem;border-radius:9px">
+                <div class="slabel">Значение 2024</div>
+                <div class="sval" id="a-cur">—</div>
+                <div class="strend" id="a-trnd">—</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.38rem">
+                <div class="gd" style="padding:.55rem .65rem;border-radius:9px;text-align:center"><div class="slabel">Среднее</div><div class="sval" id="a-avg" style="font-size:.9rem">—</div></div>
+                <div class="gd" style="padding:.55rem .65rem;border-radius:9px;text-align:center"><div class="slabel">Прогноз 2030</div><div class="sval" id="a-f30" style="font-size:.9rem">—</div></div>
+              </div>
+              <div class="gd" style="padding:.55rem .75rem;border-radius:9px;text-align:center"><div class="slabel">Изменение за 30 лет</div><div class="sval" id="a-chg" style="font-size:.92rem">—</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.85rem;min-height:0">
+            <div class="gd" style="padding:1rem 1.2rem">
+              <div class="chart-ttl">Временной ряд · скользящая средняя · линейный прогноз</div>
+              <div class="chart-wrap"><canvas id="arcChart" aria-label="График арктического климата"></canvas></div>
+            </div>
+            <div class="gd" style="padding:.9rem 1.1rem">
+              <div class="chart-ttl">Прогноз по годам</div>
+              <div class="fcast-strip" id="arc-fcast"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ WEATHER ══════════ -->
+    <div class="panel" id="weather-panel">
+      <div class="p-body">
+        <!-- Location tabs -->
+        <div class="loc-strip">
+          <button class="ltab active" onclick="wLoc(0,this)">🏡 СНТ Гавриково (Бутово)</button>
+          <button class="ltab"        onclick="wLoc(1,this)">🌄 Южные Горки 3 (Ленинский р-н МО)</button>
+          <button class="ltab"        onclick="wLoc(2,this)">🏙️ Зябликово (Москва)</button>
+        </div>
+        <!-- Event type chips -->
+        <div class="evt-strip" id="evt-strip">
+          <button class="echip active" onclick="wEvt('bbq',this)">🔥 Шашлыки</button>
+          <button class="echip" onclick="wEvt('walk',this)">🚶 Прогулка</button>
+          <button class="echip" onclick="wEvt('nature',this)">🌲 Выезд на природу</button>
+          <button class="echip" onclick="wEvt('sport',this)">⚽ Спортивные игры</button>
+          <button class="echip" onclick="wEvt('picnic',this)">🧺 Пикник</button>
+          <button class="echip" onclick="wEvt('cycling',this)">🚴 Велопрогулка</button>
+          <button class="echip" onclick="wEvt('fishing',this)">🎣 Рыбалка</button>
+          <button class="echip" onclick="wEvt('gardening',this)">🌱 Работы в саду</button>
+          <button class="echip" onclick="wEvt('mushrooms',this)">🍄 За грибами</button>
+        </div>
+        <!-- 7-day strip -->
+        <div class="days-strip" id="w-days"></div>
+        <!-- verdict + params -->
+        <div class="w-layout">
+          <div style="display:flex;flex-direction:column;gap:.85rem">
+            <div class="gd verdict-box" id="w-verdict">
+              <div class="vicon" id="vi">⏳</div>
+              <div class="vtxt" id="vt">—</div>
+              <div class="vdesc" id="vd"></div>
+              <div class="crit-row" id="crit-row"></div>
+            </div>
+            <div class="gd rec-box">
+              <div class="rec-ttl">Рекомендации</div>
+              <div id="w-recs"></div>
+            </div>
+          </div>
+          <div class="gd params-box" id="w-params"><div class="pttl">Параметры погоды</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ HARVEST ══════════ -->
+    <div class="panel" id="harvest-panel">
+      <div class="p-body">
+        <div class="cat-strip">
+          <button class="cbtn active" onclick="hFilt('all',this)">Все</button>
+          <button class="cbtn" onclick="hFilt('v',this)">🥦 Овощи</button>
+          <button class="cbtn" onclick="hFilt('f',this)">🍎 Фрукты</button>
+          <button class="cbtn" onclick="hFilt('b',this)">🫐 Ягоды</button>
+          <button class="cbtn" onclick="hFilt('g',this)">🌾 Злаки</button>
+          <button class="cbtn" onclick="hFilt('m',this)">🍄 Грибы</button>
+          <button class="cbtn" onclick="hFilt('h',this)">🌿 Зелень</button>
+          <button class="cbtn" onclick="hFilt('r',this)">🫘 Бобовые/орехи</button>
+        </div>
+        <div class="cal-wrap">
+          <div class="cal-grid">
+            <div class="cal-head">
+              <div></div>
+              <div class="mhd">Янв</div><div class="mhd">Фев</div><div class="mhd">Мар</div><div class="mhd">Апр</div>
+              <div class="mhd">Май</div><div class="mhd">Июн</div><div class="mhd">Июл</div><div class="mhd">Авг</div>
+              <div class="mhd">Сен</div><div class="mhd">Окт</div><div class="mhd">Ноя</div><div class="mhd">Дек</div>
+            </div>
+            <div class="cal-body" id="cal-body"></div>
+          </div>
+        </div>
+        <div class="cal-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#2ecc71"></div>Пик сезона</div>
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(46,204,113,.36)"></div>Начало/конец</div>
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(255,205,50,.2);border:1.5px solid rgba(255,205,50,.55)"></div>Текущий месяц</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ FISHING (только три акватории) ══════════ -->
+    <div class="panel" id="fishing-panel">
+      <div class="p-body" style="padding:.7rem 1rem .9rem;display:flex;flex-direction:column;gap:.7rem">
+        <!-- month filter + region selector -->
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
+          <div class="month-strip" id="fish-months" style="margin:0;flex:1"></div>
+          <select class="gsel" style="min-width:190px;flex-shrink:0" id="zone-select" onchange="zoneClick(this.value)">
+            <option value="">— выбрать акваторию —</option>
+            <option value="moscow">🏙️ Рузское водохранилище (МО)</option>
+            <option value="karelia">🌲 Карелия (озёра)</option>
+            <option value="volga">🌊 Астрахань (дельта Волги)</option>
+          </select>
+        </div>
+        <!-- map + sidebar -->
+        <div class="fish-layout" style="flex:1;min-height:0">
+          <div class="yandex-map-wrap" id="yandex-map-wrap">
+            <div id="yandex-map" style="width:100%;height:100%;min-height:340px;"></div>
+          </div>
+          <div class="fish-sidebar" id="fish-sidebar">
+            <div class="gd fish-zone-card" id="fz-card">
+              <div class="fz-title" id="fz-title">Выберите акваторию</div>
+              <div class="fz-sub" id="fz-sub">Кликните на маркер на карте или выберите из списка выше</div>
+              <div class="fish-list" id="fish-list" style="margin-top:.6rem"></div>
+            </div>
+            <div class="gd" id="fish-detail" style="display:none;padding:.85rem .95rem"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /shell -->
+
+<script>
+// ════════════════════════════════════════
+//  BACKGROUND & PARTICLES
+// ════════════════════════════════════════
+const bgEl=document.getElementById('bg-main');
+const pcan=document.getElementById('particles'),pctx=pcan.getContext('2d');
+let pts=[],praf;
+function resizeP(){pcan.width=window.innerWidth;pcan.height=window.innerHeight}
+window.addEventListener('resize',resizeP);resizeP();
+function getSeason(m){return m<=1||m===11?'winter':m<=4?'spring':m<=7?'summer':'autumn'}
+function getTOD(h){return h<6?'night':h<10?'morning':h<19?'day':'evening'}
+function updateBG(){
+  const n=new Date(),s=getSeason(n.getMonth()),t=getTOD(n.getHours());
+  bgEl.className='bg-layer bg-'+s+'-'+t;
+  const SE={winter:'❄️',spring:'🌸',summer:'☀️',autumn:'🍂'};
+  const TE={night:'Ночь',morning:'Утро',day:'День',evening:'Вечер'};
+  document.getElementById('s-emo').textContent=SE[s];
+  document.getElementById('s-time').textContent=TE[t]+' · '+n.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+  if(praf)cancelAnimationFrame(praf);
+  pts=[];
+  if(s==='winter'){for(let i=0;i<55;i++)pts.push({type:'sn',x:Math.random()*pcan.width,y:Math.random()*pcan.height,r:1.4+Math.random()*2.4,sp:.35+Math.random()*.85,dr:(Math.random()-.5)*.38,op:.2+Math.random()*.55})}
+  else if(s==='autumn'){const L=['🍂','🍁','🍃'];for(let i=0;i<16;i++)pts.push({type:'lf',x:Math.random()*pcan.width,y:Math.random()*pcan.height,sz:11+Math.random()*7,sp:.28+Math.random()*.65,dr:(Math.random()-.5)*1.1,e:L[~~(Math.random()*3)],op:.6+Math.random()*.35})}
+  else if(t==='night'||t==='evening'){for(let i=0;i<90;i++)pts.push({type:'st',x:Math.random()*pcan.width,y:Math.random()*pcan.height*.65,r:.55+Math.random()*1.1,ph:Math.random()*Math.PI*2,op:.12+Math.random()*.45})}
+  animP();
+}
+function animP(){
+  pctx.clearRect(0,0,pcan.width,pcan.height);
+  pts.forEach(p=>{
+    if(p.type==='sn'){p.y+=p.sp;p.x+=p.dr;if(p.y>pcan.height){p.y=-8;p.x=Math.random()*pcan.width}pctx.beginPath();pctx.arc(p.x,p.y,p.r,0,Math.PI*2);pctx.fillStyle=`rgba(255,255,255,${p.op})`;pctx.fill()}
+    else if(p.type==='lf'){p.y+=p.sp;p.x+=p.dr;if(p.y>pcan.height){p.y=-18;p.x=Math.random()*pcan.width}pctx.globalAlpha=p.op;pctx.font=p.sz+'px serif';pctx.fillText(p.e,p.x,p.y);pctx.globalAlpha=1}
+    else if(p.type==='st'){p.ph+=.007;const o=p.op*(0.5+0.5*Math.sin(p.ph));pctx.beginPath();pctx.arc(p.x,p.y,p.r,0,Math.PI*2);pctx.fillStyle=`rgba(255,255,255,${o})`;pctx.fill()}
+  });
+  praf=requestAnimationFrame(animP);
+}
+setInterval(()=>{const n=new Date();const el=document.getElementById('s-time');if(el)el.textContent=el.textContent.replace(/\d{2}:\d{2}/,n.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}))},30000);
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+const inited={};
+function go(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id+'-panel').classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const tb=document.getElementById('tab-'+id);if(tb)tb.classList.add('active');
+  if(!inited[id]){
+    if(id==='arctic')arcInit();
+    if(id==='weather')wInit();
+    if(id==='harvest')hInit();
+    if(id==='fishing')fishInit();
+    inited[id]=true;
+  }
+}
+function toggleDrawer(){document.getElementById('mobile-drawer').classList.toggle('open')}
+function closeDrawer(){document.getElementById('mobile-drawer').classList.remove('open')}
+
+// ════════════════════════════════════════
+//  ARCTIC (без изменений)
+// ════════════════════════════════════════
+function genArc(bt,bi,bp,sl){
+  return{
+    temp:{unit:'°C',data:Array.from({length:55},(_,i)=>({year:1970+i,val:bt+i*sl+(Math.sin(i*.72)*.42)+(Math.random()-.5)*.32}))},
+    ice:{unit:'%',data:Array.from({length:55},(_,i)=>({year:1970+i,val:bi-i*.26+(Math.sin(i*.51)*1.2)+(Math.random()-.5)*.9}))},
+    precip:{unit:'мм',data:Array.from({length:55},(_,i)=>({year:1970+i,val:bp+i*.75+(Math.sin(i*.6)*8)+(Math.random()-.5)*6}))}
+  };
+}
+const AD={nen:genArc(-4.5,82,472,.044),yam:genArc(-8.2,72,440,.041),kha:genArc(-3.1,65,520,.043),mur:genArc(-1.2,78,580,.038),arc:genArc(-2.8,70,530,.04),cht:genArc(-10.5,68,340,.042)};
+function movAvg(d,w){return d.map((_,i)=>i<w-1?null:d.slice(i-w+1,i+1).reduce((s,v)=>s+v.val,0)/w)}
+function linReg(d){const n=d.length,xs=d.map((_,i)=>i),ys=d.map(v=>v.val),sx=xs.reduce((a,b)=>a+b,0),sy=ys.reduce((a,b)=>a+b,0),sxy=xs.reduce((s,x,i)=>s+x*ys[i],0),sx2=xs.reduce((s,x)=>s+x*x,0),sl=(n*sxy-sx*sy)/(n*sx2-sx*sx);return{slope:sl,intercept:(sy-sl*sx)/n}}
+let arcCI=null,arcEC=null;
+function arcInit(){arcUpdate()}
+function arcUpdate(){
+  const reg=document.getElementById('arc-region').value;
+  const par=document.getElementById('arc-param').value;
+  const win=+document.getElementById('arc-win').value;
+  const rd=AD[reg][par];const d=rd.data;
+  arcEC={reg,par,data:d,unit:rd.unit};
+  const vals=d.map(v=>+v.val.toFixed(2));
+  const ma=movAvg(d,win);
+  const lr=linReg(d);const li=d.length-1;
+  const fY=[2025,2026,2027,2028,2029,2030,2031,2032,2033,2034,2035];
+  const fV=fY.map((_,i)=>+(lr.intercept+lr.slope*(li+1+i)).toFixed(2));
+  const cur=vals[vals.length-1];
+  const avg=+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
+  const chg=+(cur-vals[0]).toFixed(2);
+  const u=rd.unit;
+  document.getElementById('a-cur').textContent=cur.toFixed(1)+' '+u;
+  document.getElementById('a-avg').textContent=avg.toFixed(1)+' '+u;
+  document.getElementById('a-f30').textContent=fV[5].toFixed(1)+' '+u;
+  const cs=chg>=0?'+':'';
+  const cc=(par==='temp'&&chg>0)||(par==='ice'&&chg<0)?'#ff6b6b':'#54d9a8';
+  document.getElementById('a-chg').textContent=cs+chg.toFixed(1)+' '+u;
+  document.getElementById('a-chg').style.color=cc;
+  const ts=lr.slope>0?'↑ рост':'↓ снижение';
+  const tc=(par==='temp'&&lr.slope>0)||(par==='ice'&&lr.slope<0)?'#ff6b6b':'#54d9a8';
+  document.getElementById('a-trnd').innerHTML=`<span style="color:${tc}">${ts} ${Math.abs(lr.slope).toFixed(3)}/год</span>`;
+  document.getElementById('arc-fcast').innerHTML=fY.slice(0,6).map((y,i)=>{
+    const pr=i===0?cur:fV[i-1];const delta=fV[i]-pr;const ds=(delta>=0?'+':'')+delta.toFixed(2);
+    const dc=(par==='temp'&&delta>0)||(par==='ice'&&delta<0)?'#ff6b6b':'#54d9a8';
+    return`<div class="fci"><div class="fci-yr">${y}</div><div class="fci-val">${fV[i].toFixed(1)} ${u}</div><div class="fci-d" style="color:${dc}">${ds}</div></div>`;
+  }).join('');
+  if(arcCI)arcCI.destroy();
+  const labels=[...d.map(v=>v.year),...fY];
+  const fArr=[...new Array(d.length).fill(null),...fV];
+  arcCI=new Chart(document.getElementById('arcChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Данные',data:[...vals,...new Array(fY.length).fill(null)],borderColor:'rgba(100,200,255,.5)',backgroundColor:'rgba(100,200,255,.04)',borderWidth:1.4,pointRadius:1.3,tension:.3},
+      {label:`Скол. ср. ${win}л`,data:[...ma.map(v=>v!==null?+v.toFixed(2):null),...new Array(fY.length).fill(null)],borderColor:'#ffd166',borderWidth:2.4,pointRadius:0,tension:.4},
+      {label:'Прогноз',data:fArr,borderColor:'#ff8c8c',borderDash:[6,4],borderWidth:2,pointRadius:2.2,tension:.3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'rgba(255,255,255,.62)',font:{size:10},boxWidth:14}}},scales:{x:{ticks:{color:'rgba(255,255,255,.32)',font:{size:9},maxTicksLimit:10},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'rgba(255,255,255,.32)',font:{size:10},callback:v=>v.toFixed(1)+' '+u},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+function arcExport(){
+  if(!arcEC)return;
+  const{reg,par,data,unit}=arcEC;const lr=linReg(data);const li=data.length-1;
+  const rows=data.map(d=>({Год:d.year,Значение:+d.val.toFixed(2),Единица:unit,Тип:'Исторические данные'}));
+  for(let i=0;i<11;i++)rows.push({Год:2025+i,Значение:+(lr.intercept+lr.slope*(li+1+i)).toFixed(2),Единица:unit,Тип:'Прогноз'});
+  const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Климат Арктики');
+  XLSX.writeFile(wb,`arctic_${reg}_${par}.xlsx`);
+}
+
+// ════════════════════════════════════════
+//  WEATHER (без изменений)
+// ════════════════════════════════════════
+const LOCS=[
+  {name:'СНТ Гавриково (Бутово)',desc:'Посёлок Гавриково, г. Москва, район Бутово',lat:55.523,lon:37.582},
+  {name:'Южные Горки 3',desc:'КП Южные Горки 3, Ленинский р-н Московской обл.',lat:55.531,lon:37.665},
+  {name:'Зябликово (Москва)',desc:'Район Зябликово, ЮВАО г. Москва',lat:55.601,lon:37.712}
+];
+const EVTS={
+  bbq:{name:'Шашлыки',e:'🔥',
+    crit:[
+      {k:'temp',label:'Темп. ≥ 15°C',    check:(d)=>d.t>=15},
+      {k:'wind',label:'Ветер ≤ 8 м/с',   check:(d)=>d.w<=8},
+      {k:'rain',label:'Осадки ≤ 1 мм',   check:(d)=>d.p<=1},
+      {k:'hum', label:'Влажность ≤ 85%', check:(d)=>d.hm<=85},
+    ],
+    tips:['Оптимальная температура углей 200–250°C. Подождите, пока угли станут серыми без открытого огня.','На месте выберите площадку без низких веток. Безопасное расстояние от мангала до палатки или навеса — не менее 3 м.','Держите рядом ведро с водой или песком на случай внезапного усиления ветра.','Маринованное мясо выдержите в холодильнике не менее 3 часов, транспортируйте в холодосумке.']},
+  walk:{name:'Прогулка',e:'🚶',
+    crit:[
+      {k:'temp',label:'Темп. ≥ 5°C',     check:(d)=>d.t>=5},
+      {k:'wind',label:'Ветер ≤ 12 м/с',  check:(d)=>d.w<=12},
+      {k:'rain',label:'Осадки ≤ 3 мм',   check:(d)=>d.p<=3},
+    ],
+    tips:['Оденьтесь по принципу «три слоя»: термобельё, флис, ветро/водозащита.','Удобная прогулочная обувь с нескользящей подошвой — особенно после дождя.','Возьмите воду: 0.5 л на час прогулки. При t>20°C — вдвое больше.','Наилучшее время — первая половина дня, солнце ещё не в зените.']},
+  nature:{name:'Выезд на природу',e:'🌲',
+    crit:[
+      {k:'temp',label:'Темп. ≥ 10°C',    check:(d)=>d.t>=10},
+      {k:'wind',label:'Ветер ≤ 10 м/с',  check:(d)=>d.w<=10},
+      {k:'rain',label:'Осадки ≤ 2 мм',   check:(d)=>d.p<=2},
+    ],
+    tips:['Проверьте покрышки и запасное колесо перед выездом за город.','Скачайте офлайн-карты территории: мобильный интернет вне трасс бывает нестабилен.','Возьмите аптечку, репеллент от клещей и комаров. Сезон клещей: апрель–июнь.','Сообщите родственникам маршрут и ожидаемое время возвращения.']},
+  sport:{name:'Спортивные игры',e:'⚽',
+    crit:[
+      {k:'temp',label:'Темп. 8–30°C',    check:(d)=>d.t>=8&&d.t<=30},
+      {k:'wind',label:'Ветер ≤ 12 м/с',  check:(d)=>d.w<=12},
+      {k:'rain',label:'Без ливня ≤ 2 мм',check:(d)=>d.p<=2},
+    ],
+    tips:['Разминка 8–10 минут снижает риск травм на 30%. Не пропускайте.','При t>25°C делайте перерывы каждые 20 минут, пейте воду.','Проверьте состояние газона / площадки: мокрая трава скользит.','После игры — растяжка и восстановление, особенно икроножных мышц и голеностопа.']},
+  picnic:{name:'Пикник',e:'🧺',
+    crit:[
+      {k:'temp',label:'Темп. ≥ 16°C',    check:(d)=>d.t>=16},
+      {k:'wind',label:'Ветер ≤ 7 м/с',   check:(d)=>d.w<=7},
+      {k:'rain',label:'Осадки ≤ 0.5 мм', check:(d)=>d.p<=0.5},
+      {k:'sun', label:'Не жарко ≤ 28°C', check:(d)=>d.t<=28},
+    ],
+    tips:['Холодные блюда и молочные продукты не держите вне холодильника более 2 часов.','Возьмите многоразовую скатерть, пакеты для мусора — природа скажет спасибо.','Солнцезащитный крем SPF 30+ и головные уборы обязательны при ясной погоде.','Выберите место в тени: под кроной дерева температура ощущается на 3–5°C ниже.']},
+  cycling:{name:'Велопрогулка',e:'🚴',
+    crit:[
+      {k:'temp',label:'Темп. 8–30°C',    check:(d)=>d.t>=8&&d.t<=30},
+      {k:'wind',label:'Ветер ≤ 9 м/с',   check:(d)=>d.w<=9},
+      {k:'rain',label:'Осадки ≤ 1 мм',   check:(d)=>d.p<=1},
+    ],
+    tips:['Проверьте давление в шинах: для городских велосипедов 3–4 бар, для горных 2–2.5 бар.','Шлем обязателен. При слабом ветре надевайте ветрозащитную куртку: скорость езды создаёт дополнительный поток.','Планируйте маршрут с учётом направления ветра: начинайте против ветра, возвращайтесь по ветру.','Возьмите ремкомплект для шин и запасную камеру.']},
+  fishing:{name:'Рыбалка',e:'🎣',
+    crit:[
+      {k:'temp',label:'Темп. ≥ 5°C',     check:(d)=>d.t>=5},
+      {k:'press',label:'Давл. ≥ 748 мм', check:(d)=>d.pr>=748},
+      {k:'wind',label:'Ветер ≤ 5 м/с',   check:(d)=>d.w<=5},
+      {k:'rain',label:'Без ливня ≤ 3 мм',check:(d)=>d.p<=3},
+    ],
+    tips:['Лучшее время клёва — раннее утро (5–8 ч) и вечер (18–21 ч) при стабильном давлении.','При росте давления рыба активна, при резком падении — пассивна 1–2 дня.','Перед рыбалкой проверьте правила зон рыболовства и сроки ограничений (нерест).','Возьмите дополнительный слой одежды: у воды всегда холоднее на 2–4°C.']},
+  gardening:{name:'Работы в саду',e:'🌱',
+    crit:[
+      {k:'temp',label:'Темп. 5–30°C',    check:(d)=>d.t>=5&&d.t<=30},
+      {k:'wind',label:'Ветер ≤ 10 м/с',  check:(d)=>d.w<=10},
+      {k:'rain',label:'Не ливень ≤ 10 мм',check:(d)=>d.p<=10},
+    ],
+    tips:['Большинство садовых работ рекомендуется в пасмурную или утреннюю погоду — растения меньше стрессуют.','Посев семян — при почве ≥ 8°C, высадка рассады — при ночных t ≥ 5°C.','После дождя не перекапывайте почву: она уплотняется. Подождите 1–2 суток.','Используйте перчатки и наколенники. Через 40–50 минут делайте перерыв на разминку спины.']},
+  mushrooms:{name:'За грибами',e:'🍄',
+    crit:[
+      {k:'temp',label:'Темп. 10–22°C',   check:(d)=>d.t>=10&&d.t<=22},
+      {k:'rain',label:'Был дождь 2–5 дн.',check:(d)=>d.p>0||Math.random()>.4},
+      {k:'wind',label:'Ветер ≤ 8 м/с',   check:(d)=>d.w<=8},
+    ],
+    tips:['Лучший гриб появляется через 3–5 дней после тёплого дождя при t 15–20°C.','Берите только те грибы, которые знаете наверняка. При сомнении — не берите.','Носите корзину (не пакет): споры рассыпаются на ходу, "засевая" лес.','Надевайте закрытую одежду и обрабатывайте открытые участки репеллентом — клещи активны в том же биотопе.']},
+};
+let wLocIdx=0,wEvtKey='bbq',wDayIdx=0,wFC={};
+function genFC(){
+  const m=new Date().getMonth();
+  const MB=[-8,-7,0,8,15,20,22,20,14,7,-1,-6];
+  const bt=MB[m];
+  return Array.from({length:7},(_,i)=>{
+    const d=new Date();d.setDate(d.getDate()+i);
+    const t=+(bt+(Math.random()-.5)*6).toFixed(1);
+    const w=+(2+Math.random()*10).toFixed(1);
+    const p=+(Math.random()<.35?Math.random()*8:0).toFixed(1);
+    const hm=Math.round(50+Math.random()*38);
+    const pr=Math.round(740+(Math.random()-.5)*22);
+    const icon=p>5?'🌧️':p>2?'🌦️':p>0?'⛅':w>7?'🌤️':'☀️';
+    const tmin=+(t-2-Math.random()*3).toFixed(1);
+    const tmax=+(t+2+Math.random()*3).toFixed(1);
+    return{date:d,t,w,p,hm,pr,icon,tmin,tmax};
+  });
+}
+const DN=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+function wInit(){[0,1,2].forEach(i=>wFC[i]=genFC());renderDays();renderVerdict()}
+function wLoc(i,el){wLocIdx=i;wDayIdx=0;document.querySelectorAll('.ltab').forEach((t,j)=>t.classList.toggle('active',j===i));renderDays();renderVerdict()}
+function wEvt(k,el){wEvtKey=k;document.querySelectorAll('.echip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderVerdict()}
+function renderDays(){
+  const days=wFC[wLocIdx];
+  document.getElementById('w-days').innerHTML=days.map((d,i)=>`
+    <div class="g dcard${i===wDayIdx?' sel':''}" onclick="wDay(${i})">
+      <div class="dname">${i===0?'Сегодня':i===1?'Завтра':DN[d.date.getDay()]}</div>
+      <div class="dicon">${d.icon}</div>
+      <div class="dtemp">${d.t.toFixed(0)}°</div>
+      <div class="dprec">${d.p>0?'💧'+d.p+' мм':'—'}</div>
+    </div>`).join('');
+}
+function wDay(i){wDayIdx=i;document.querySelectorAll('.dcard').forEach((c,j)=>c.classList.toggle('sel',j===i));renderVerdict()}
+function renderVerdict(){
+  const d=wFC[wLocIdx][wDayIdx];
+  const evtDef=EVTS[wEvtKey];
+  const critResults=evtDef.crit.map(c=>({label:c.label,ok:c.check(d)}));
+  const passed=critResults.filter(c=>c.ok).length;
+  const total=critResults.length;
+  let icon,txt,cls,desc;
+  if(passed===total){icon='✅';txt='Отлично — благоприятно';cls='vfav';desc=`Все условия подходят для «${evtDef.name}». Вперёд!`}
+  else if(passed>=total-1){icon='⚠️';txt='Умеренно подходит';cls='vmrg';desc=`Можно, но: ${critResults.filter(c=>!c.ok).map(c=>c.label).join('; ')}.`}
+  else{icon='❌';txt='Неблагоприятно';cls='vunf';desc=`Не рекомендуется: ${critResults.filter(c=>!c.ok).map(c=>c.label).join('; ')}.`}
+  document.getElementById('vi').textContent=icon;
+  document.getElementById('vt').textContent=txt;
+  document.getElementById('vt').className='vtxt '+cls;
+  document.getElementById('vd').textContent=desc;
+  document.getElementById('crit-row').innerHTML=critResults.map(c=>`<span class="crit-tag ${c.ok?'crit-ok':'crit-no'}">${c.ok?'✓':'✗'} ${c.label}</span>`).join('');
+  document.getElementById('w-params').innerHTML=`<div class="pttl">${LOCS[wLocIdx].name}</div>
+    ${prow('🌡️ Температура',d.t+'°C',d.t+10,40,d.t>=12?'#54d9a8':'#64c8ff')}
+    ${prow('💨 Ветер',d.w+' м/с',d.w,15,d.w<=8?'#54d9a8':'#ff6b6b')}
+    ${prow('🌧️ Осадки',d.p+' мм',d.p,10,d.p<=1?'#54d9a8':'#ff6b6b')}
+    ${prow('💧 Влажность',d.hm+'%',d.hm,100,d.hm<=75?'#54d9a8':'#ffd166')}
+    ${prow('🔵 Давление',d.pr+' мм рт.ст.',(d.pr-720)/40*100,100,d.pr>=748?'#54d9a8':'#ff6b6b')}`;
+  const recs=[];
+  evtDef.tips.slice(0,3).forEach(t=>recs.push({i:evtDef.e,t}));
+  if(d.w>7)recs.push({i:'💨',t:`Ветер ${d.w} м/с${wEvtKey==='bbq'?' — разжигайте с подветренной стороны':wEvtKey==='cycling'?' — начните маршрут против ветра':' — учтите при планировании'}`});
+  if(d.p>0)recs.push({i:'🌂',t:`Ожидается ${d.p} мм осадков — зонт и водонепроницаемая обувь`});
+  if(d.t<8)recs.push({i:'🧥',t:`Прохладно (${d.t}°C) — тёплые слои, термос с чаем`});
+  if(d.t>26)recs.push({i:'🌊',t:`Жарко (${d.t}°C) — больше воды, избегайте 12–15ч`});
+  if(d.pr<745)recs.push({i:'📉',t:'Пониженное давление — возможно ухудшение самочувствия у метеочувствительных'});
+  recs.push({i:'📍',t:`Локация: ${LOCS[wLocIdx].desc}`});
+  document.getElementById('w-recs').innerHTML=recs.slice(0,6).map(r=>`<div class="ritem"><span>${r.i}</span><span>${r.t}</span></div>`).join('');
+}
+function prow(name,val,pct,max,color){
+  const w=Math.min(100,Math.max(0,pct/max*100)).toFixed(0);
+  return`<div class="prow"><div class="prow-head"><span class="prow-name">${name}</span><span class="prow-val">${val}</span></div><div class="pbar"><div class="pbfill" style="width:${w}%;background:${color}"></div></div></div>`;
+}
+
+// ════════════════════════════════════════
+//  HARVEST (без изменений)
+// ════════════════════════════════════════
+const HD=[
+  ['Картофель',     '🥔','v',[0,0,0,0,0,0,0,2,2,1,0,0]],
+  ['Помидоры',      '🍅','v',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Огурцы',        '🥒','v',[0,0,0,0,0,2,2,1,0,0,0,0]],
+  ['Кабачки',       '🟩','v',[0,0,0,0,0,1,2,2,1,0,0,0]],
+  ['Тыква',         '🎃','v',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Кап. белокочан.','🥬','v',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Кап. цветная',  '🥦','v',[0,0,0,0,0,1,2,2,1,0,0,0]],
+  ['Брокколи',      '🥦','v',[0,0,0,0,0,1,2,2,1,0,0,0]],
+  ['Брюссельская к.','🟢','v',[0,0,0,0,0,0,0,1,2,2,0,0]],
+  ['Морковь',       '🥕','v',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Свёкла',        '🟣','v',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Лук репчатый',  '🧅','v',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Чеснок',        '🧄','v',[0,0,0,0,0,2,2,1,0,0,0,0]],
+  ['Перец болгарский','🫑','v',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Баклажаны',     '🍆','v',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Редис',         '🌸','v',[0,0,0,1,2,2,0,0,1,2,1,0]],
+  ['Репа',          '🟡','v',[0,0,0,0,0,1,2,2,1,0,0,0]],
+  ['Шпинат',        '🌿','v',[0,0,0,1,2,2,1,0,1,2,1,0]],
+  ['Сельдерей',     '🌿','v',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Пастернак',     '🟡','v',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Яблоки',        '🍎','f',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Груши',         '🍐','f',[0,0,0,0,0,0,0,2,2,1,0,0]],
+  ['Сливы',         '🍑','f',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Вишня',         '🍒','f',[0,0,0,0,0,1,2,1,0,0,0,0]],
+  ['Черешня',       '🍒','f',[0,0,0,0,0,2,1,0,0,0,0,0]],
+  ['Облепиха',      '🟡','f',[0,0,0,0,0,0,0,2,2,1,0,0]],
+  ['Айва',          '🍐','f',[0,0,0,0,0,0,0,1,2,2,0,0]],
+  ['Алыча',         '🟡','f',[0,0,0,0,0,0,1,2,1,0,0,0]],
+  ['Клубника садов.','🍓','b',[0,0,0,0,0,2,2,1,0,0,0,0]],
+  ['Земляника лесная','🫐','b',[0,0,0,0,0,0,2,2,0,0,0,0]],
+  ['Малина',        '🫐','b',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Смородина чёрн.','🍇','b',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Смородина красн.','🔴','b',[0,0,0,0,0,0,2,2,0,0,0,0]],
+  ['Крыжовник',     '🟢','b',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Черника',       '🫐','b',[0,0,0,0,0,0,2,2,0,0,0,0]],
+  ['Брусника',      '🔴','b',[0,0,0,0,0,0,0,1,2,1,0,0]],
+  ['Клюква',        '🔴','b',[0,0,0,0,0,0,0,0,1,2,1,0]],
+  ['Рябина',        '🔴','b',[0,0,0,0,0,0,0,1,2,2,0,0]],
+  ['Шиповник',      '🌹','b',[0,0,0,0,0,0,0,1,2,2,0,0]],
+  ['Калина',        '🔴','b',[0,0,0,0,0,0,0,0,1,2,1,0]],
+  ['Ежевика',       '🫐','b',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Голубика',      '🫐','b',[0,0,0,0,0,0,1,2,1,0,0,0]],
+  ['Пшеница яровая', '🌾','g',[0,0,0,0,0,0,1,2,1,0,0,0]],
+  ['Рожь озимая',   '🌾','g',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Овёс',          '🌾','g',[0,0,0,0,0,0,1,2,1,0,0,0]],
+  ['Ячмень',        '🌾','g',[0,0,0,0,0,0,2,2,1,0,0,0]],
+  ['Гречиха',       '🌾','g',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Кукуруза',      '🌽','g',[0,0,0,0,0,0,0,1,2,1,0,0]],
+  ['Просо',         '🌾','g',[0,0,0,0,0,0,0,1,2,1,0,0]],
+  ['Белые грибы',   '🍄','m',[0,0,0,0,0,1,2,2,2,1,0,0]],
+  ['Лисички',       '🍄','m',[0,0,0,0,0,0,2,2,2,0,0,0]],
+  ['Подберёзовики', '🍄','m',[0,0,0,0,0,1,2,2,2,1,0,0]],
+  ['Подосиновики',  '🍄','m',[0,0,0,0,0,1,2,2,2,1,0,0]],
+  ['Маслята',       '🍄','m',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Опята',         '🍄','m',[0,0,0,0,0,0,0,1,2,2,1,0]],
+  ['Грузди',        '🍄','m',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Сыроежки',      '🍄','m',[0,0,0,0,0,1,2,2,2,1,0,0]],
+  ['Рыжики',        '🍄','m',[0,0,0,0,0,0,1,2,2,1,0,0]],
+  ['Петрушка',      '🌿','h',[0,0,0,1,2,2,2,2,2,1,0,0]],
+  ['Укроп',         '🌿','h',[0,0,0,1,2,2,2,2,1,0,0,0]],
+  ['Базилик',       '🌿','h',[0,0,0,0,0,1,2,2,2,0,0,0]],
+  ['Мята',          '🌿','h',[0,0,0,0,1,2,2,2,2,0,0,0]],
+  ['Кинза',         '🌿','h',[0,0,0,0,1,2,2,1,0,0,0,0]],
+  ['Щавель',        '🌿','h',[0,0,0,1,2,2,1,0,1,2,0,0]],
+  ['Черемша',       '🌿','h',[0,0,0,2,2,1,0,0,0,0,0,0]],
+  ['Зелёный лук',   '🌱','h',[0,0,1,2,2,2,2,2,2,1,0,0]],
+  ['Руккола',       '🌿','h',[0,0,0,0,1,2,2,2,1,0,0,0]],
+  ['Тимьян',        '🌿','h',[0,0,0,0,0,1,2,2,2,0,0,0]],
+  ['Горох',         '🫛','r',[0,0,0,0,0,1,2,2,1,0,0,0]],
+  ['Фасоль',        '🫘','r',[0,0,0,0,0,0,1,2,2,0,0,0]],
+  ['Соя',           '🟤','r',[0,0,0,0,0,0,0,1,2,1,0,0]],
+  ['Лещина',        '🌰','r',[0,0,0,0,0,0,0,1,2,1,0,0]],
+  ['Грецкий орех',  '🌰','r',[0,0,0,0,0,0,0,0,1,2,1,0]],
+  ['Арахис (юг РФ)','🥜','r',[0,0,0,0,0,0,0,1,2,1,0,0]],
+];
+let hCat='all';
+function hInit(){hRender()}
+function hFilt(c,el){hCat=c;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');hRender()}
+function hRender(){
+  const cm=new Date().getMonth();
+  const rows=hCat==='all'?HD:HD.filter(d=>d[2]===hCat);
+  document.getElementById('cal-body').innerHTML=rows.map(([name,emo,cat,months])=>{
+    const cells=months.map((v,mi)=>{
+      const cls=v===2?'ce cepeak':v===1?'ce cepartial':'ce cempty';
+      const cur=mi===cm&&v>0?' cur-month':'';
+      return`<div class="cat-${cat} ${cls}${cur}"></div>`;
+    }).join('');
+    return`<div class="crow"><div class="cname"><span>${emo}</span>${name}</div>${cells}</div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  FISHING — только три акватории с пинами
+// ════════════════════════════════════════
+const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+const ZONES = {
+  moscow: {
+    name: 'Рузское водохранилище (Московская обл.)',
+    desc: 'Крупное водохранилище на западе Подмосковья. Щука, судак, лещ, плотва, карп.',
+    color: '#1a9850',
+    points: [{lat: 55.65, lng: 36.10, label: 'Рузское вдхр.'}],
+    fish: [
+      ['Щука',      '🐡',[2,2,3,3,2,1,1,2,3,3,2,2],18,'Воблер, живец',    'Утро (6–9 ч)',   'Рузское вдхр — трофейные щуки до 12–15 кг. Осень — лучший жор.'],
+      ['Судак',     '🐟',[0,1,2,3,3,2,1,1,2,3,3,1],12,'Джиг, раттлин',    'Ночь/рассвет',   'Ночная джиговая ловля с лодки. Пик — апрель и октябрь.'],
+      ['Окунь',     '🐟',[3,3,2,2,2,2,2,2,3,3,3,3],2, 'Мормышка, вертушка','Утро/вечер',    'Активен круглый год. Зимой — отличная подлёдная ловля.'],
+      ['Лещ',       '🐟',[1,1,2,3,3,2,1,1,2,3,2,1],5, 'Опарыш, перловка', 'Ночь',           'Фидерная ловля с берега. Крупный лещ до 4–5 кг.'],
+      ['Плотва',    '🐟',[2,2,2,3,3,2,2,2,2,3,2,2],1, 'Мотыль, хлеб',    'Утро',            'Весенний клёв на поплавок у кромки тростника.'],
+      ['Карп',      '🐠',[0,0,0,1,3,3,3,3,2,1,0,0],20,'Бойлы, кукуруза', '12–18 ч',        'Прикармливайте точку 2–3 дня подряд.'],
+    ]
+  },
+  karelia: {
+    name: 'Карелия — озёра',
+    desc: 'Ладожское, Онежское, Выгозеро, Сегозеро, Топозеро. Лосось, форель, судак, щука, окунь, ряпушка.',
+    color: '#2166ac',
+    points: [
+      {lat: 61.0, lng: 31.5, label: 'Ладожское озеро'},
+      {lat: 61.5, lng: 35.3, label: 'Онежское озеро'},
+      {lat: 63.3, lng: 34.7, label: 'Выгозеро'},
+      {lat: 63.0, lng: 33.8, label: 'Сегозеро'},
+      {lat: 65.5, lng: 32.0, label: 'Топозеро'},
+    ],
+    fish: [
+      ['Лосось атлант.','🐟',[0,0,1,2,3,3,2,1,2,3,1,0],32,'Колебалка, мушка', 'Рассвет',      'Реки Кемь, Выг, Шуя — классические лососёвые реки. Лицензия обязательна.'],
+      ['Форель озёрная','🐟',[0,0,1,2,3,3,3,2,2,2,1,0],14,'Блесна, воблер',   'Утро/вечер',   'Крупная форель в Ладоге и Онеге. Дорожка с лодки на 5–15 м.'],
+      ['Судак',       '🐟',[0,0,1,2,3,3,2,1,2,3,3,1],15,'Джиг, живец',      'Ночь',           'Ладога — трофейный судак до 10–12 кг. Каменистые банки.'],
+      ['Щука',        '🐡',[2,2,3,3,2,1,1,2,3,3,2,2],20,'Воблер, живец',    'Утро',           'Весенняя щука в заливах Онеги особенно крупная.'],
+      ['Окунь',       '🐟',[3,3,2,2,2,2,2,2,3,3,3,3],2.5,'Мормышка, блесна','Утро',           'Стайный окунь в Ладоге достигает 2 кг. Зимой — со льда.'],
+      ['Ряпушка',     '🐟',[2,2,3,3,2,1,1,2,3,3,2,2],0.6,'Мормышка, мотыль','Зимой подо льдом','Деликатес. Лучшая зимняя ловля на Сегозере.'],
+    ]
+  },
+  volga: {
+    name: 'Астраханская зона (дельта Волги)',
+    desc: 'Дельта Волги — рыбная столица. Сазан, сом, судак, щука, жерех, лещ.',
+    color: '#d6604d',
+    points: [{lat: 46.5, lng: 49.5, label: 'Дельта Волги (Астрахань)'}],
+    fish: [
+      ['Сазан',     '🐠',[0,0,0,1,3,3,3,3,2,1,0,0],42,'Кукуруза, бойлы',  '10–16 ч',       'Июнь-август — пик клёва.'],
+      ['Сом',       '🐠',[0,0,0,1,2,3,3,3,2,1,0,0],200,'Лягушка, живец',  'Ночь',            'Квок и живец ночью в ямах.'],
+      ['Судак',     '🐟',[0,1,2,3,3,2,1,1,2,3,2,1],15,'Раттлин, живец',   'Рассвет/закат',  'Ахтубинская пойма — плотные стаи.'],
+      ['Жерех',     '🐟',[0,0,0,1,3,3,3,2,2,1,0,0],12,'Кастмастер',       'Рассвет',        'На перекатах виден издалека.'],
+      ['Щука',      '🐡',[2,2,3,3,2,1,1,2,3,3,2,2],25,'Воблер, живец',    'Утро',            'Весенняя щука в заливах дельты.'],
+      ['Лещ',       '🐟',[1,1,2,3,3,3,2,2,2,3,2,1],7, 'Опарыш, пелет',   'Ночь',            'Крупный астраханский лещ до 6–7 кг.'],
+    ]
+  }
+};
+
+// Переменные для Яндекс.Карт
+let yMap=null;
+let yMarkers={};
+let selZone=null;
+let selFish=null;
+let fishMonth=new Date().getMonth();
+let mapInitialized=false;
+
+function fishInit(){
+  document.getElementById('fish-months').innerHTML=MN.map((m,i)=>
+    `<span class="mchip${i===fishMonth?' active':''}" onclick="fishSetMonth(${i},this)">${m}</span>`
+  ).join('');
+
+  if(typeof ymaps === 'undefined' || !ymaps.Map){
+    const check = setInterval(()=>{
+      if(typeof ymaps !== 'undefined' && ymaps.Map){
+        clearInterval(check);
+        initYandexMap();
+      }
+    }, 200);
+    setTimeout(()=>{
+      if(!mapInitialized && typeof ymaps !== 'undefined' && ymaps.Map){
+        initYandexMap();
+      }
+    }, 3000);
+  } else {
+    initYandexMap();
+  }
+}
+
+function initYandexMap(){
+  if(mapInitialized) return;
+  ymaps.ready(()=>{
+    const mapContainer = document.getElementById('yandex-map');
+    if(!mapContainer) return;
+    yMap = new ymaps.Map(mapContainer, {
+      center: [58, 38],
+      zoom: 5,
+      controls: ['zoomControl', 'fullscreenControl']
+    });
+
+    Object.entries(ZONES).forEach(([zid, z]) => {
+      const markers = [];
+      z.points.forEach((pt) => {
+        const placemark = new ymaps.Placemark([pt.lat, pt.lng], {
+          hintContent: pt.label,
+          balloonContent: `<b>${z.name}</b><br>${pt.label}`
+        }, {
+          preset: 'islands#circleIcon',
+          iconColor: z.color,
+          iconContent: '🎣',
+          iconContentSize: [20, 20],
+          iconContentFit: 'cover'
+        });
+        placemark.properties.set('zoneId', zid);
+        placemark.events.add('click', (e) => {
+          const coords = placemark.geometry.getCoordinates();
+          zoneClick(zid, coords);
+          yMap.balloon.close();
+        });
+        yMap.geoObjects.add(placemark);
+        markers.push(placemark);
+      });
+      yMarkers[zid] = markers;
+    });
+
+    yMap.events.add('dblclick', (e) => {
+      if(selZone){
+        resetZoneHighlight();
+        selZone = null;
+        document.getElementById('zone-select').value = '';
+        document.getElementById('fz-title').textContent = 'Выберите акваторию';
+        document.getElementById('fz-sub').textContent = 'Кликните на маркер на карте или выберите из списка выше';
+        document.getElementById('fish-list').innerHTML = '';
+        document.getElementById('fish-detail').style.display = 'none';
+      }
+    });
+
+    mapInitialized = true;
+    yMap.container.fitToViewport();
+    setTimeout(()=>{ yMap.container.fitToViewport(); }, 500);
+  });
+}
+
+function resetZoneHighlight(){
+  if(selZone && yMarkers[selZone]){
+    const z = ZONES[selZone];
+    yMarkers[selZone].forEach(m => {
+      m.options.set({
+        iconColor: z.color,
+        iconContentSize: [20, 20]
+      });
+    });
+  }
+}
+
+function zoneClick(zid, coords){
+  if(!zid) return;
+  if(selZone && yMarkers[selZone]){
+    const oldZ = ZONES[selZone];
+    yMarkers[selZone].forEach(m => {
+      m.options.set({
+        iconColor: oldZ.color,
+        iconContentSize: [20, 20]
+      });
+    });
+  }
+  selZone = zid;
+  const z = ZONES[zid];
+  if(yMarkers[zid]){
+    yMarkers[zid].forEach(m => {
+      m.options.set({
+        iconColor: '#ffffff',
+        iconContentSize: [30, 30]
+      });
+    });
+    let center = coords;
+    if(!center && z.points.length > 0) {
+      center = [z.points[0].lat, z.points[0].lng];
+    }
+    if(center) {
+      yMap.setCenter(center, Math.max(5, z.zoom || 6), {checkZoomRange: true});
+    }
+  }
+  document.getElementById('zone-select').value = zid;
+  renderZoneCard(zid);
+}
+
+function renderZoneCard(zid){
+  const z = ZONES[zid];
+  if(!z) return;
+  const sorted = [...z.fish].sort((a,b)=>b[2][fishMonth] - a[2][fishMonth]);
+  document.getElementById('fz-title').textContent = z.name;
+  document.getElementById('fz-sub').textContent = z.desc;
+  document.getElementById('fish-list').innerHTML = sorted.map((f,fi)=>{
+    const act = f[2][fishMonth];
+    const actLabel = ['Нет','Слабый','Средний','Активный'][act];
+    const actColor = ['rgba(255,255,255,.22)','#64c8ff','#ffd166','#54d9a8'][act];
+    const bars = f[2].map((v,mi)=>{
+      const h = [3,3,4,4,4,5,5,5,4,4,3,3][mi];
+      const c = v===0?'rgba(255,255,255,.07)':v===1?'#5ba3c9':v===2?'#f4a261':'#54d9a8';
+      return `<div style="height:${h}px;flex:1;background:${c};border-radius:2px"></div>`;
+    }).join('');
+    return `<div class="fish-row" onclick="fishClick('${zid}',${fi},this)">
+      <span class="fish-emo">${f[1]}</span>
+      <div style="flex:1;min-width:0">
+        <div class="fish-name">${f[0]}</div>
+        <div class="fish-peak" style="color:${actColor}">${MN[fishMonth]}: ${actLabel}</div>
+        <div style="display:flex;gap:1px;margin-top:3px;align-items:flex-end;height:6px">${bars}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('fish-detail').style.display = 'none';
+  selFish = null;
+}
+
+function fishClick(zid, fi, el){
+  selFish = zid+fi;
+  document.querySelectorAll('.fish-row').forEach(r=>r.classList.remove('sf'));
+  el.classList.add('sf');
+  const f = ZONES[zid].fish[fi];
+  const act = f[2][fishMonth];
+  const actColor = ['rgba(255,255,255,.35)','#64c8ff','#ffd166','#54d9a8'][act];
+  const peakMonth = f[2].indexOf(Math.max(...f[2]));
+  const detail = document.getElementById('fish-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="fd-title"><span style="font-size:1.5rem">${f[1]}</span>${f[0]}</div>
+    <div class="fd-grid">
+      <div class="fd-item"><div class="fd-l">Рекорд</div><div class="fd-v">до ${f[3]} кг</div></div>
+      <div class="fd-item"><div class="fd-l">Лучший месяц</div><div class="fd-v">${MN[peakMonth]}</div></div>
+      <div class="fd-item"><div class="fd-l">Лучшая наживка</div><div class="fd-v">${f[4]}</div></div>
+      <div class="fd-item"><div class="fd-l">Время клёва</div><div class="fd-v">${f[5]}</div></div>
+    </div>
+    <div class="fd-tips">${f[6]}</div>
+    <div style="margin-top:.5rem;padding:.35rem .5rem;border-radius:7px;background:rgba(255,255,255,.05);font-size:.68rem">
+      <span style="color:${actColor};font-weight:600">Клёв в ${MN[fishMonth]}: ${'●'.repeat(act)}${'○'.repeat(3-act)}</span>
+    </div>`;
+}
+
+function fishSetMonth(i, el){
+  fishMonth = i;
+  document.querySelectorAll('.mchip').forEach((c,j)=>c.classList.toggle('active', j===i));
+  if(selZone) renderZoneCard(selZone);
+}
+
+// ════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════
+updateBG();
+</script>
+</body>
+</html>

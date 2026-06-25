@@ -9,32 +9,35 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://api-maps.yandex.ru/2.1/?apikey=c253e384-e057-4288-aa9f-37e2ea00ad2d_api&lang=ru_RU" type="text/javascript"></script>
 <style>
-/* ===== Все стили (без изменений, те же что в финальной версии) ===== */
+/* ===== Новая цветовая схема ===== */
 :root {
-  --bg-body: #f5f7fa;
-  --bg-card: rgba(255,255,255,0.85);
-  --bg-card-hover: rgba(255,255,255,0.95);
-  --bg-glass: rgba(255,255,255,0.4);
-  --bg-glass-darker: rgba(0,0,0,0.05);
-  --text-primary: #1a1a2e;
-  --text-secondary: #4a4a5a;
-  --text-muted: #6c6c7a;
-  --border-color: rgba(0,0,0,0.08);
-  --shadow: 0 4px 20px rgba(0,0,0,0.06);
-  --bg-topbar: rgba(255,255,255,0.7);
+  --bg-body: #f4f6fa;
+  --bg-card: rgba(255,255,255,0.92);
+  --bg-card-hover: #ffffff;
+  --bg-glass: rgba(255,255,255,0.6);
+  --bg-glass-darker: rgba(0,0,0,0.04);
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --border-color: rgba(0,0,0,0.06);
+  --shadow: 0 4px 16px rgba(0,0,0,0.06);
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: rgba(37,99,235,0.12);
+  --bg-topbar: rgba(255,255,255,0.75);
   --bg-tabbar: rgba(255,255,255,0.5);
-  --tab-color: rgba(0,0,0,0.4);
-  --tab-active: #1a1a2e;
-  --tab-border: rgba(0,0,0,0.1);
-  --input-bg: rgba(255,255,255,0.8);
-  --input-border: rgba(0,0,0,0.15);
-  --toggle-bg: #e0e0e0;
-  --toggle-dot: #fff;
+  --tab-color: #64748b;
+  --tab-active: #1e293b;
+  --tab-border: rgba(0,0,0,0.06);
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --toggle-bg: #cbd5e1;
+  --toggle-dot: #ffffff;
   --verdict-bg: rgba(255,255,255,0.6);
   --chart-grid: rgba(0,0,0,0.06);
-  --chart-text: rgba(0,0,0,0.5);
-  --scrollbar-track: rgba(0,0,0,0.04);
-  --scrollbar-thumb: rgba(0,0,0,0.15);
+  --chart-text: #64748b;
+  --scrollbar-track: rgba(0,0,0,0.03);
+  --scrollbar-thumb: rgba(0,0,0,0.12);
 }
 [data-theme="dark"] {
   --bg-body: #0a1628;
@@ -42,14 +45,17 @@
   --bg-card-hover: rgba(255,255,255,0.12);
   --bg-glass: rgba(0,0,0,0.3);
   --bg-glass-darker: rgba(0,0,0,0.5);
-  --text-primary: #ffffff;
-  --text-secondary: #c0c8d8;
-  --text-muted: #8892a8;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --border-color: rgba(255,255,255,0.08);
   --shadow: 0 4px 20px rgba(0,0,0,0.3);
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-light: rgba(59,130,246,0.15);
   --bg-topbar: rgba(0,0,0,0.38);
   --bg-tabbar: rgba(0,0,0,0.22);
-  --tab-color: rgba(255,255,255,0.42);
+  --tab-color: rgba(255,255,255,0.5);
   --tab-active: #ffffff;
   --tab-border: rgba(255,255,255,0.07);
   --input-bg: rgba(255,255,255,0.09);
@@ -66,7 +72,7 @@
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-body);transition:background 0.4s ease, color 0.3s ease}
 .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 4s ease}
 [data-theme="dark"] .bg-layer{display:block}
-[data-theme="light"] .bg-layer{display:block;opacity:0.3}
+[data-theme="light"] .bg-layer{display:block;opacity:0.2}
 #particles{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.3}
 [data-theme="dark"] #particles{opacity:0.45}
 #shell{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column}
@@ -81,7 +87,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 #tabbar::-webkit-scrollbar{display:none}
 .tab{display:flex;align-items:center;gap:6px;padding:0 1rem;cursor:pointer;background:none;border:none;color:var(--tab-color);font-family:'Inter',sans-serif;font-size:.79rem;font-weight:500;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text-primary)}
-.tab.active{color:var(--tab-active);border-bottom-color:var(--tab-active)}
+.tab.active{color:var(--tab-active);border-bottom-color:var(--accent)}
 .tab-ico{font-size:.95rem}
 #mobile-drawer{display:none;position:fixed;top:98px;left:0;right:0;z-index:200;background:var(--bg-card);backdrop-filter:blur(22px);border-bottom:1px solid var(--border-color);flex-direction:column}
 #mobile-drawer.open{display:flex}
@@ -103,11 +109,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .gsel{background:var(--input-bg);border:1px solid var(--input-border);color:var(--text-primary);padding:.44rem .78rem;border-radius:8px;font-family:'Inter',sans-serif;font-size:.79rem;cursor:pointer;appearance:none;-webkit-appearance:none;width:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 9 9'%3E%3Cpath fill='rgba(0,0,0,.38)' d='M4.5 7L0 2h9z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:1.7rem;transition:background 0.3s, border 0.3s}
 [data-theme="dark"] .gsel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 9 9'%3E%3Cpath fill='rgba(255,255,255,.38)' d='M4.5 7L0 2h9z'/%3E%3C/svg%3E")}
 .gsel option{background:var(--bg-body);color:var(--text-primary)}
-.gsel:focus{outline:none;border-color:var(--input-border)}
+.gsel:focus{outline:none;border-color:var(--accent)}
 .btn-p{padding:.44rem .85rem;border-radius:8px;cursor:pointer;background:var(--bg-glass);border:1px solid var(--border-color);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:.77rem;font-weight:500;transition:all .2s;width:100%}
 .btn-p:hover{background:var(--bg-card-hover)}
-.btn-g{padding:.44rem .85rem;border-radius:8px;cursor:pointer;background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;font-family:'Inter',sans-serif;font-size:.77rem;font-weight:500;transition:all .2s;width:100%}
-.btn-g:hover{background:rgba(46,204,113,0.22)}
+.btn-g{padding:.44rem .85rem;border-radius:8px;cursor:pointer;background:var(--accent-light);border:1px solid var(--accent);color:var(--accent);font-family:'Inter',sans-serif;font-size:.77rem;font-weight:500;transition:all .2s;width:100%}
+.btn-g:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 .sval{font-family:'Unbounded',sans-serif;font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:.12rem}
 .slabel{font-size:.62rem;color:var(--text-muted)}
 .strend{font-size:.66rem;margin-top:.12rem;color:var(--text-secondary)}
@@ -120,18 +126,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .fci-d{font-size:.58rem;margin-top:.08rem}
 .loc-strip{display:flex;gap:.42rem;flex-wrap:wrap;margin-bottom:.82rem}
 .ltab{padding:.32rem .85rem;border-radius:100px;cursor:pointer;background:var(--bg-glass);border:1px solid var(--border-color);color:var(--text-secondary);font-size:.75rem;transition:all .2s}
-.ltab.active{background:var(--bg-card-hover);border-color:var(--text-primary);color:var(--text-primary);font-weight:500}
+.ltab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
 .evt-strip{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.82rem}
 .echip{padding:.3rem .75rem;border-radius:100px;cursor:pointer;background:var(--bg-glass);border:1px solid var(--border-color);color:var(--text-secondary);font-size:.72rem;transition:all .2s}
-.echip.active{background:rgba(100,200,255,0.14);border-color:rgba(100,200,255,0.36);color:#64c8ff}
+.echip.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:500}
 .days-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:.42rem;margin-bottom:.82rem}
 @media(max-width:480px){.days-strip{grid-template-columns:repeat(4,1fr)}}
 .dcard{padding:.58rem .32rem;text-align:center;cursor:pointer;transition:all .2s;border-radius:9px;background:var(--bg-glass)}
-.dcard.sel{background:var(--bg-card-hover)!important}
+.dcard.sel{background:var(--accent-light)!important;border:1px solid var(--accent)}
 .dname{font-size:.58rem;color:var(--text-muted);margin-bottom:.22rem}
 .dicon{font-size:1.35rem;margin-bottom:.18rem}
 .dtemp{font-size:.76rem;font-weight:600;color:var(--text-primary)}
-.dprec{font-size:.57rem;color:rgba(100,200,255,.72);margin-top:.1rem}
+.dprec{font-size:.57rem;color:var(--accent);margin-top:.1rem}
 .w-layout{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
 @media(max-width:700px){.w-layout{grid-template-columns:1fr}}
 .verdict-box{padding:1.2rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:145px;background:var(--verdict-bg)}
@@ -155,11 +161,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .rec-ttl{font-size:.63rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.48rem}
 .ritem{display:flex;gap:.55rem;align-items:flex-start;padding:.36rem 0;border-bottom:1px solid var(--border-color);font-size:.73rem;color:var(--text-secondary);line-height:1.5}
 .ritem:last-child{border-bottom:none}
-/* ===== УРЖАИ: разводящая и календарь ===== */
+/* ===== Главная страница ===== */
+.home-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;gap:1.2rem;width:100%;max-width:900px;margin:0 auto;padding:0 1rem}
+.home-title{font-family:'Unbounded',sans-serif;font-size:clamp(1.6rem,4vw,2.8rem);font-weight:700;text-align:center;line-height:1.15;color:var(--text-primary)}
+.home-sub{color:var(--text-secondary);text-align:center;max-width:620px;font-size:.9rem;line-height:1.6}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;width:100%}
+.home-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.4rem 0.8rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:13px;box-shadow:var(--shadow);cursor:pointer;transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s}
+.home-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08);border-color:var(--accent)}
+.home-card .emoji{font-size:2.6rem;display:block;margin-bottom:.5rem}
+.home-card .label{font-weight:600;font-size:.85rem;color:var(--text-primary)}
+.home-card .desc{font-size:.65rem;color:var(--text-muted);margin-top:.2rem}
+/* ===== Урожаи ===== */
 .harvest-container{display:flex;flex-direction:column;gap:1.2rem}
 .harvest-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;width:100%}
-.harvest-cat-card{padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s}
-.harvest-cat-card:hover{background:var(--bg-card-hover);transform:translateY(-4px)}
+.harvest-cat-card{padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-card);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,box-shadow .25s,border-color .25s}
+.harvest-cat-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08);border-color:var(--accent)}
 .harvest-cat-card .emoji{font-size:2.4rem;display:block;margin-bottom:.5rem}
 .harvest-cat-card .label{font-weight:600;font-size:.8rem;color:var(--text-primary)}
 .harvest-cat-card .desc{font-size:.65rem;color:var(--text-muted);margin-top:.2rem}
@@ -167,13 +183,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .harvest-controls .cat-strip{flex:1;min-width:200px;display:flex;gap:.35rem;flex-wrap:wrap}
 .harvest-controls .month-filter{display:flex;gap:.25rem;flex-wrap:wrap;align-items:center}
 .month-btn{padding:.2rem .55rem;border-radius:100px;cursor:pointer;font-size:.65rem;border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-muted);transition:all .2s;white-space:nowrap}
-.month-btn.active{background:rgba(100,200,255,0.17);border-color:rgba(100,200,255,0.38);color:#64c8ff;font-weight:600}
-.month-btn.current{background:rgba(255,205,50,0.15);border-color:rgba(255,205,50,0.4);color:#f39c12}
+.month-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.month-btn.current{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
 .month-btn:hover{background:var(--bg-card-hover)}
 .harvest-table-wrap{overflow-x:auto;margin-top:.5rem}
 .harvest-table{width:100%;border-collapse:collapse;font-size:.75rem}
 .harvest-table th{text-align:center;padding:.35rem .2rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;font-size:.58rem;border-bottom:1px solid var(--border-color)}
-.harvest-table th.current-month{color:#f39c12;border-bottom:2px solid #f39c12}
+.harvest-table th.current-month{color:var(--accent);border-bottom:2px solid var(--accent)}
 .harvest-table td{padding:.25rem .2rem;border-bottom:1px solid var(--border-color);vertical-align:middle}
 .harvest-table .crop-name{display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:500;color:var(--text-primary)}
 .harvest-table .crop-emo{font-size:1rem}
@@ -182,21 +198,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .harvest-table .activity-cell.peak{background:linear-gradient(135deg,#27ae60,#2ecc71)}
 .harvest-table .activity-cell.partial{background:linear-gradient(135deg,#f39c12,#f1c40f)}
 .harvest-table .activity-cell.none{background:var(--border-color);opacity:0.3}
-.harvest-table .activity-cell.current-highlight{box-shadow:inset 0 0 0 2px rgba(255,205,50,0.7)}
+.harvest-table .activity-cell.current-highlight{box-shadow:inset 0 0 0 2px var(--accent)}
 .harvest-table .crop-row{transition:background .2s}
 .harvest-table .crop-row:hover{background:var(--bg-card-hover)}
 .no-results{padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem}
 .cal-legend{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.85rem}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--text-muted)}
 .leg-dot{width:11px;height:11px;border-radius:3px}
-/* кнопка назад */
-.back-btn{background:none;border:none;color:var(--text-muted);font-size:.8rem;cursor:pointer;padding:.3rem .6rem;border-radius:6px;transition:background .2s;display:inline-flex;align-items:center;gap:6px}
-.back-btn:hover{background:var(--bg-glass);color:var(--text-primary)}
-/* скрытие/показ состояний */
+.back-btn{background:none;border:1px solid var(--border-color);color:var(--text-secondary);font-size:.8rem;cursor:pointer;padding:.4rem .9rem;border-radius:8px;transition:background .2s,border-color .2s;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.back-btn:hover{background:var(--bg-card-hover);border-color:var(--text-muted)}
 .harvest-state-select{display:block}
 .harvest-state-calendar{display:none}
 .harvest-container.calendar-mode .harvest-state-select{display:none}
 .harvest-container.calendar-mode .harvest-state-calendar{display:block}
+.cbtn{padding:.28rem .75rem;border-radius:100px;cursor:pointer;font-size:.71rem;border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-secondary);transition:all .2s}
+.cbtn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.cbtn:hover{background:var(--bg-card-hover)}
 /* fishing */
 .yandex-map-wrap{position:relative;overflow:hidden;border-radius:13px;min-height:320px;background:var(--bg-glass);border:1px solid var(--border-color);transition:all 0.3s ease}
 .yandex-map-wrap.hidden{display:none}
@@ -218,13 +235,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .fz-sub{font-size:.68rem;color:var(--text-muted);margin-bottom:.65rem;line-height:1.4}
 .fish-list{display:flex;flex-direction:column;gap:.42rem}
 .fish-row{display:flex;align-items:center;gap:.65rem;padding:.42rem .5rem;border-radius:8px;background:var(--bg-glass);border:1px solid var(--border-color);cursor:pointer;transition:background .2s}
-.fish-row:hover,.fish-row.sf{background:var(--bg-card-hover);border-color:rgba(100,200,255,.24)}
+.fish-row:hover,.fish-row.sf{background:var(--bg-card-hover);border-color:var(--accent)}
 .fish-emo{font-size:1.2rem;flex-shrink:0}
 .fish-name{font-size:.76rem;font-weight:500;color:var(--text-primary)}
 .fish-peak{font-size:.62rem;color:var(--text-muted);margin-top:.08rem}
 .month-strip{display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.78rem}
 .mchip{padding:.22rem .55rem;border-radius:100px;cursor:pointer;font-size:.65rem;border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-muted);transition:all .2s}
-.mchip.active{background:rgba(100,200,255,0.17);border-color:rgba(100,200,255,0.38);color:#64c8ff}
+.mchip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .fish-detail{padding:.85rem .95rem;border-top:1px solid var(--border-color)}
 .fd-title{font-size:.8rem;font-weight:600;color:var(--text-primary);margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem}
 .fd-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.55rem}
@@ -269,16 +286,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
   </div>
   <div id="content">
 
-    <!-- HOME -->
+    <!-- HOME (центрированная сетка) -->
     <div class="panel active" id="home-panel">
-      <div class="p-body">
-        <h1 class="home-title fi">🌾 АгроКлимат</h1>
-        <p class="home-sub fi d1">Прогноз климата, погода для мероприятий, сезонный урожай и карта рыбалки.</p>
-        <div class="home-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;width:100%;max-width:900px">
-          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('climate')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🌍</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Климат России</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Прогноз по округам</div></div>
-          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('weather')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🎯</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Мероприятия</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Погода для активностей</div></div>
-          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('harvest')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🌾</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Урожаи</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Календарь культур</div></div>
-          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('fishing')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🎣</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Карта рыбалки</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Акватории России</div></div>
+      <div class="p-body" style="display:flex;align-items:center;justify-content:center">
+        <div class="home-wrapper">
+          <h1 class="home-title fi">🌾 АгроКлимат</h1>
+          <p class="home-sub fi d1">Прогноз климата, погода для мероприятий, сезонный урожай и карта рыбалки.</p>
+          <div class="home-grid fi d2">
+            <div class="home-card" onclick="go('climate')"><span class="emoji">🌍</span><div class="label">Климат России</div><div class="desc">Прогноз по округам</div></div>
+            <div class="home-card" onclick="go('weather')"><span class="emoji">🎯</span><div class="label">Мероприятия</div><div class="desc">Погода для активностей</div></div>
+            <div class="home-card" onclick="go('harvest')"><span class="emoji">🌾</span><div class="label">Урожаи</div><div class="desc">Календарь культур</div></div>
+            <div class="home-card" onclick="go('fishing')"><span class="emoji">🎣</span><div class="label">Карта рыбалки</div><div class="desc">Акватории России</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -404,7 +423,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
             </div>
           </div>
 
-          <!-- КАЛЕНДАРЬ (скрыт по умолчанию) -->
+          <!-- КАЛЕНДАРЬ -->
           <div class="harvest-state-calendar">
             <button class="back-btn" onclick="closeHarvestCalendar()">← Назад к выбору категории</button>
             <div class="harvest-controls">
@@ -446,7 +465,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
               <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"></div>Пик сезона</div>
               <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,#f39c12,#f1c40f)"></div>Начало/конец</div>
               <div class="leg-item"><div class="leg-dot" style="background:var(--border-color);opacity:0.3"></div>Нет активности</div>
-              <div class="leg-item"><div class="leg-dot" style="background:transparent;border:2px solid rgba(255,205,50,0.7)"></div>Текущий месяц</div>
+              <div class="leg-item"><div class="leg-dot" style="background:transparent;border:2px solid var(--accent)"></div>Текущий месяц</div>
             </div>
           </div>
         </div>
@@ -554,21 +573,14 @@ function go(id){
   if(!inited[id]){
     if(id==='climate')climateInit();
     if(id==='weather')wInit();
-    if(id==='harvest'){ /* инициализация будет при первом открытии через hInit() */ }
+    if(id==='harvest'){ /* инициализация отложена */ }
     if(id==='fishing')fishInit();
     inited[id]=true;
   }
-  // Если это вкладка урожая, показываем разводящую, если только не был открыт календарь (это обрабатывается внутри)
+  // При переходе на вкладку урожая показываем разводящую
   if(id==='harvest'){
-    // При переходе на вкладку показываем разводящую, если только не был открыт календарь (состояние сохраняется)
     const container = document.getElementById('harvest-container');
-    // Если календарь был открыт, оставляем, иначе показываем разводящую
-    // Но по умолчанию всегда показываем разводящую при переходе на вкладку
-    if(!container.classList.contains('calendar-mode')){
-      // уже в режиме выбора
-    } else {
-      // если был календарь, закрываем его? 
-      // Лучше при переходе на вкладку всегда показывать разводящую, чтобы не путать пользователя
+    if(container.classList.contains('calendar-mode')){
       closeHarvestCalendar();
     }
   }
@@ -668,7 +680,7 @@ function climateExport(){
 }
 
 // ============================================
-//  WEATHER
+//  WEATHER (без изменений)
 // ============================================
 const LOCS=[
   {name:'СНТ Гавриково (Бутово)',desc:'г. Москва, Бутово',lat:55.523,lon:37.582},
@@ -754,7 +766,7 @@ function prow(name,val,pct,max,color){
 }
 
 // ============================================
-//  HARVEST — разводящая + календарь
+//  HARVEST
 // ============================================
 const HD=[
   ['Картофель','🥔','v',[0,0,0,0,0,0,0,2,2,1,0,0]],
@@ -836,30 +848,18 @@ const HD=[
 let hCat='all';
 let hMonth='all';
 
-function hInit(){
-  // При инициализации показываем разводящую
-  document.getElementById('harvest-container').classList.remove('calendar-mode');
-  // но если пришли с фильтром (из главной), то можно открыть календарь?
-  // Эту логику перенесём в openHarvestCalendar
-}
-
 function openHarvestCalendar(category){
-  // Переключаем режим на календарь
   const container = document.getElementById('harvest-container');
   container.classList.add('calendar-mode');
-  // Устанавливаем фильтр категории
   hCat = category;
-  // Обновляем кнопки категорий
   document.querySelectorAll('.cat-strip .cbtn').forEach(b=>{
     b.classList.remove('active');
     if(b.dataset.cat === category) b.classList.add('active');
   });
-  // Сбрасываем фильтр месяца на "Все"
   hMonth = 'all';
   document.querySelectorAll('.month-filter .month-btn').forEach(b=>b.classList.remove('active'));
   const allBtn = document.querySelector('.month-filter .month-btn[data-month="all"]');
   if(allBtn) allBtn.classList.add('active');
-  // Перерисовываем таблицу
   hRender();
 }
 
@@ -930,7 +930,6 @@ function hRender(){
   });
   tbody.innerHTML = bodyHtml;
 
-  // Обновляем класс current для кнопок месяцев
   document.querySelectorAll('.month-filter .month-btn').forEach(btn => {
     const m = btn.dataset.month;
     btn.classList.remove('current');
@@ -946,7 +945,7 @@ function hRender(){
 }
 
 // ============================================
-//  FISHING
+//  FISHING (без изменений)
 // ============================================
 const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 const ZONES = {

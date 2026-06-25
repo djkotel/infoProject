@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Яндекс.Карты API (вставьте свой ключ) -->
 <script src="https://api-maps.yandex.ru/2.1/?apikey=c253e384-e057-4288-aa9f-37e2ea00ad2d_api&lang=ru_RU" type="text/javascript"></script>
 <style>
 /* ===== Все стили (без изменений, те же что в финальной версии) ===== */
@@ -98,17 +97,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .g{background:var(--bg-glass);backdrop-filter:blur(16px);border:1px solid var(--border-color);border-radius:13px;box-shadow:var(--shadow);transition:background 0.3s, border 0.3s, box-shadow 0.3s}
 .gd{background:var(--bg-glass-darker);backdrop-filter:blur(16px);border:1px solid var(--border-color);border-radius:13px;box-shadow:var(--shadow);transition:background 0.3s, border 0.3s, box-shadow 0.3s}
 .g:hover,.gd:hover{background:var(--bg-card-hover)}
-#home-panel .p-body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%}
-.home-title{font-family:'Unbounded',sans-serif;font-size:clamp(1.4rem,3.5vw,2.5rem);font-weight:700;text-align:center;line-height:1.15;margin-bottom:.7rem;color:var(--text-primary)}
-.home-sub{color:var(--text-secondary);text-align:center;max-width:520px;font-size:.83rem;line-height:1.65;margin-bottom:2rem}
-.home-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.9rem;max-width:1050px;width:100%}
-@media(max-width:900px){.home-cards{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:560px){.home-cards{grid-template-columns:1fr 1fr}}
-.hcard{padding:1.4rem .9rem;cursor:pointer;text-align:center;transition:transform .25s,background .25s}
-.hcard:hover{background:var(--bg-card-hover);transform:translateY(-5px)}
-.hcard-ico{font-size:2.2rem;margin-bottom:.65rem;display:block}
-.hcard-title{font-family:'Unbounded',sans-serif;font-size:.7rem;font-weight:600;margin-bottom:.35rem;color:var(--text-primary)}
-.hcard-desc{font-size:.68rem;color:var(--text-muted);line-height:1.5}
 .ctrl-panel{display:flex;flex-direction:column;gap:.72rem;padding:1.1rem}
 .cg{display:flex;flex-direction:column;gap:.28rem}
 .clabel{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)}
@@ -167,36 +155,49 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .rec-ttl{font-size:.63rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.48rem}
 .ritem{display:flex;gap:.55rem;align-items:flex-start;padding:.36rem 0;border-bottom:1px solid var(--border-color);font-size:.73rem;color:var(--text-secondary);line-height:1.5}
 .ritem:last-child{border-bottom:none}
-.cat-strip{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.85rem}
-.cbtn{padding:.28rem .75rem;border-radius:100px;cursor:pointer;font-size:.71rem;border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-secondary);transition:all .2s}
-.cbtn.active{background:var(--bg-card-hover);border-color:var(--text-primary);color:var(--text-primary)}
-.cal-wrap{overflow-x:auto}
-.cal-grid{min-width:auto} /* изменено */
-.cal-head{display:grid;gap:2px;margin-bottom:2px}
-.cal-body{display:flex;flex-direction:column;gap:2px}
-.crow{display:grid;gap:2px;align-items:center}
-.cname{font-size:.69rem;color:var(--text-secondary);padding:2px 5px;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ce{height:20px;border-radius:3px;transition:transform .15s;cursor:default}
-.ce:hover{transform:scaleY(1.38)}
-.cempty{background:var(--border-color)}
+/* ===== УРЖАИ: разводящая и календарь ===== */
+.harvest-container{display:flex;flex-direction:column;gap:1.2rem}
+.harvest-select{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;width:100%}
+.harvest-cat-card{padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s}
+.harvest-cat-card:hover{background:var(--bg-card-hover);transform:translateY(-4px)}
+.harvest-cat-card .emoji{font-size:2.4rem;display:block;margin-bottom:.5rem}
+.harvest-cat-card .label{font-weight:600;font-size:.8rem;color:var(--text-primary)}
+.harvest-cat-card .desc{font-size:.65rem;color:var(--text-muted);margin-top:.2rem}
+.harvest-controls{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin-bottom:1.2rem}
+.harvest-controls .cat-strip{flex:1;min-width:200px;display:flex;gap:.35rem;flex-wrap:wrap}
+.harvest-controls .month-filter{display:flex;gap:.25rem;flex-wrap:wrap;align-items:center}
+.month-btn{padding:.2rem .55rem;border-radius:100px;cursor:pointer;font-size:.65rem;border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-muted);transition:all .2s;white-space:nowrap}
+.month-btn.active{background:rgba(100,200,255,0.17);border-color:rgba(100,200,255,0.38);color:#64c8ff;font-weight:600}
+.month-btn.current{background:rgba(255,205,50,0.15);border-color:rgba(255,205,50,0.4);color:#f39c12}
+.month-btn:hover{background:var(--bg-card-hover)}
+.harvest-table-wrap{overflow-x:auto;margin-top:.5rem}
+.harvest-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.harvest-table th{text-align:center;padding:.35rem .2rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;font-size:.58rem;border-bottom:1px solid var(--border-color)}
+.harvest-table th.current-month{color:#f39c12;border-bottom:2px solid #f39c12}
+.harvest-table td{padding:.25rem .2rem;border-bottom:1px solid var(--border-color);vertical-align:middle}
+.harvest-table .crop-name{display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:500;color:var(--text-primary)}
+.harvest-table .crop-emo{font-size:1rem}
+.harvest-table .activity-cell{width:20px;height:20px;border-radius:4px;display:inline-block;transition:transform .15s;cursor:default}
+.harvest-table .activity-cell:hover{transform:scale(1.25)}
+.harvest-table .activity-cell.peak{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+.harvest-table .activity-cell.partial{background:linear-gradient(135deg,#f39c12,#f1c40f)}
+.harvest-table .activity-cell.none{background:var(--border-color);opacity:0.3}
+.harvest-table .activity-cell.current-highlight{box-shadow:inset 0 0 0 2px rgba(255,205,50,0.7)}
+.harvest-table .crop-row{transition:background .2s}
+.harvest-table .crop-row:hover{background:var(--bg-card-hover)}
+.no-results{padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem}
 .cal-legend{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.85rem}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--text-muted)}
 .leg-dot{width:11px;height:11px;border-radius:3px}
-.cat-v .cepeak{background:linear-gradient(90deg,#27ae60,#2ecc71)}
-.cat-v .cepartial{background:rgba(46,180,96,.36)}
-.cat-f .cepeak{background:linear-gradient(90deg,#c0392b,#e74c3c)}
-.cat-f .cepartial{background:rgba(192,57,43,.36)}
-.cat-b .cepeak{background:linear-gradient(90deg,#8e44ad,#9b59b6)}
-.cat-b .cepartial{background:rgba(142,68,173,.36)}
-.cat-g .cepeak{background:linear-gradient(90deg,#d68910,#f39c12)}
-.cat-g .cepartial{background:rgba(214,137,16,.36)}
-.cat-m .cepeak{background:linear-gradient(90deg,#6d4c41,#8d6e63)}
-.cat-m .cepartial{background:rgba(109,76,65,.36)}
-.cat-h .cepeak{background:linear-gradient(90deg,#0097a7,#00bcd4)}
-.cat-h .cepartial{background:rgba(0,151,167,.36)}
-.cat-r .cepeak{background:linear-gradient(90deg,#b71c1c,#ef5350)}
-.cat-r .cepartial{background:rgba(183,28,28,.36)}
-.cur-month{box-shadow:inset 0 0 0 1.5px rgba(255,210,50,.65)!important}
+/* кнопка назад */
+.back-btn{background:none;border:none;color:var(--text-muted);font-size:.8rem;cursor:pointer;padding:.3rem .6rem;border-radius:6px;transition:background .2s;display:inline-flex;align-items:center;gap:6px}
+.back-btn:hover{background:var(--bg-glass);color:var(--text-primary)}
+/* скрытие/показ состояний */
+.harvest-state-select{display:block}
+.harvest-state-calendar{display:none}
+.harvest-container.calendar-mode .harvest-state-select{display:none}
+.harvest-container.calendar-mode .harvest-state-calendar{display:block}
+/* fishing */
 .yandex-map-wrap{position:relative;overflow:hidden;border-radius:13px;min-height:320px;background:var(--bg-glass);border:1px solid var(--border-color);transition:all 0.3s ease}
 .yandex-map-wrap.hidden{display:none}
 #yandex-map{width:100%;height:100%;min-height:320px}
@@ -272,13 +273,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
     <div class="panel active" id="home-panel">
       <div class="p-body">
         <h1 class="home-title fi">🌾 АгроКлимат</h1>
-        <p class="home-sub fi d1">Прогноз климата по округам России, погода для мероприятий, сезонный урожай и карта рыбалки.</p>
-        <div class="home-cards fi d2">
-          <div class="g hcard" onclick="go('climate')"><span class="hcard-ico">🌍</span><div class="hcard-title">Климат России</div><div class="hcard-desc">Прогноз по 8 федеральным округам. Экспорт Excel.</div></div>
-          <div class="g hcard" onclick="go('weather')"><span class="hcard-ico">🎯</span><div class="hcard-title">Мероприятия</div><div class="hcard-desc">Прогноз для 3 локаций Москвы и МО.</div></div>
-          <div class="g hcard" onclick="go('harvest')"><span class="hcard-ico">🌾</span><div class="hcard-title">Урожаи</div><div class="hcard-desc">60+ культур: текущий и будущие месяцы.</div></div>
-          <div class="g hcard" onclick="go('fishing')"><span class="hcard-ico">🎣</span><div class="hcard-title">Карта рыбалки</div><div class="hcard-desc">Акватории: Подмосковье, Карелия, Астрахань.</div></div>
-          <div class="g hcard" style="opacity:.55;cursor:default"><span class="hcard-ico">🛰️</span><div class="hcard-title">Спутник</div><div class="hcard-desc">Скоро</div></div>
+        <p class="home-sub fi d1">Прогноз климата, погода для мероприятий, сезонный урожай и карта рыбалки.</p>
+        <div class="home-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;width:100%;max-width:900px">
+          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('climate')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🌍</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Климат России</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Прогноз по округам</div></div>
+          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('weather')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🎯</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Мероприятия</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Погода для активностей</div></div>
+          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('harvest')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🌾</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Урожаи</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Календарь культур</div></div>
+          <div class="home-cat-card" style="padding:1.2rem .6rem;cursor:pointer;text-align:center;border-radius:13px;background:var(--bg-glass);border:1px solid var(--border-color);box-shadow:var(--shadow);transition:transform .25s,background .25s" onclick="go('fishing')"><span class="emoji" style="font-size:2.4rem;display:block;margin-bottom:.5rem">🎣</span><div class="label" style="font-weight:600;font-size:.8rem;color:var(--text-primary)">Карта рыбалки</div><div class="desc" style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem">Акватории России</div></div>
         </div>
       </div>
     </div>
@@ -384,26 +384,71 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
       </div>
     </div>
 
-    <!-- HARVEST (обновлённый календарь) -->
+    <!-- HARVEST (разводящая + календарь) -->
     <div class="panel" id="harvest-panel">
       <div class="p-body">
-        <div class="cat-strip">
-          <button class="cbtn active" onclick="hFilt('all',this)">Все</button>
-          <button class="cbtn" onclick="hFilt('v',this)">🥦 Овощи</button>
-          <button class="cbtn" onclick="hFilt('f',this)">🍎 Фрукты</button>
-          <button class="cbtn" onclick="hFilt('b',this)">🫐 Ягоды</button>
-          <button class="cbtn" onclick="hFilt('g',this)">🌾 Злаки</button>
-          <button class="cbtn" onclick="hFilt('m',this)">🍄 Грибы</button>
-          <button class="cbtn" onclick="hFilt('h',this)">🌿 Зелень</button>
-          <button class="cbtn" onclick="hFilt('r',this)">🫘 Бобовые/орехи</button>
-        </div>
-        <div class="cal-wrap">
-          <div class="cal-grid" id="cal-grid"></div>
-        </div>
-        <div class="cal-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:#2ecc71"></div>Пик сезона</div>
-          <div class="leg-item"><div class="leg-dot" style="background:rgba(46,204,113,.36)"></div>Начало/конец</div>
-          <div class="leg-item"><div class="leg-dot" style="background:rgba(255,205,50,.2);border:1.5px solid rgba(255,205,50,.55)"></div>Текущий месяц</div>
+        <div class="harvest-container" id="harvest-container">
+          <!-- РАЗВОДЯЩАЯ -->
+          <div class="harvest-state-select">
+            <h2 style="font-family:'Unbounded',sans-serif;font-size:1.1rem;color:var(--text-primary);margin-bottom:.5rem">🌾 Выберите категорию культур</h2>
+            <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:1.2rem">Нажмите на группу, чтобы открыть календарь урожая</p>
+            <div class="harvest-select">
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('v')"><span class="emoji">🥦</span><div class="label">Овощи</div><div class="desc">Картофель, помидоры, огурцы, морковь и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('f')"><span class="emoji">🍎</span><div class="label">Фрукты</div><div class="desc">Яблоки, груши, сливы, вишня и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('b')"><span class="emoji">🫐</span><div class="label">Ягоды</div><div class="desc">Клубника, малина, смородина, черника и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('m')"><span class="emoji">🍄</span><div class="label">Грибы</div><div class="desc">Белые, лисички, подберёзовики, опята и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('g')"><span class="emoji">🌾</span><div class="label">Злаки</div><div class="desc">Пшеница, рожь, овёс, кукуруза и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('h')"><span class="emoji">🌿</span><div class="label">Зелень</div><div class="desc">Петрушка, укроп, базилик, мята и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('r')"><span class="emoji">🫘</span><div class="label">Бобовые и орехи</div><div class="desc">Горох, фасоль, соя, грецкий орех и др.</div></div>
+              <div class="harvest-cat-card" onclick="openHarvestCalendar('all')"><span class="emoji">📋</span><div class="label">Все культуры</div><div class="desc">Полный календарь без фильтра</div></div>
+            </div>
+          </div>
+
+          <!-- КАЛЕНДАРЬ (скрыт по умолчанию) -->
+          <div class="harvest-state-calendar">
+            <button class="back-btn" onclick="closeHarvestCalendar()">← Назад к выбору категории</button>
+            <div class="harvest-controls">
+              <div class="cat-strip">
+                <button class="cbtn active" data-cat="all" onclick="hFilt('all',this)">Все</button>
+                <button class="cbtn" data-cat="v" onclick="hFilt('v',this)">🥦 Овощи</button>
+                <button class="cbtn" data-cat="f" onclick="hFilt('f',this)">🍎 Фрукты</button>
+                <button class="cbtn" data-cat="b" onclick="hFilt('b',this)">🫐 Ягоды</button>
+                <button class="cbtn" data-cat="m" onclick="hFilt('m',this)">🍄 Грибы</button>
+                <button class="cbtn" data-cat="g" onclick="hFilt('g',this)">🌾 Злаки</button>
+                <button class="cbtn" data-cat="h" onclick="hFilt('h',this)">🌿 Зелень</button>
+                <button class="cbtn" data-cat="r" onclick="hFilt('r',this)">🫘 Бобовые/орехи</button>
+              </div>
+              <div class="month-filter" id="month-filter">
+                <span class="clabel" style="margin-right:.3rem">Месяц:</span>
+                <button class="month-btn active" data-month="all" onclick="hSelectMonth('all',this)">Все</button>
+                <button class="month-btn current" data-month="0" onclick="hSelectMonth(0,this)">Янв</button>
+                <button class="month-btn" data-month="1" onclick="hSelectMonth(1,this)">Фев</button>
+                <button class="month-btn" data-month="2" onclick="hSelectMonth(2,this)">Мар</button>
+                <button class="month-btn" data-month="3" onclick="hSelectMonth(3,this)">Апр</button>
+                <button class="month-btn" data-month="4" onclick="hSelectMonth(4,this)">Май</button>
+                <button class="month-btn" data-month="5" onclick="hSelectMonth(5,this)">Июн</button>
+                <button class="month-btn" data-month="6" onclick="hSelectMonth(6,this)">Июл</button>
+                <button class="month-btn" data-month="7" onclick="hSelectMonth(7,this)">Авг</button>
+                <button class="month-btn" data-month="8" onclick="hSelectMonth(8,this)">Сен</button>
+                <button class="month-btn" data-month="9" onclick="hSelectMonth(9,this)">Окт</button>
+                <button class="month-btn" data-month="10" onclick="hSelectMonth(10,this)">Ноя</button>
+                <button class="month-btn" data-month="11" onclick="hSelectMonth(11,this)">Дек</button>
+              </div>
+            </div>
+            <div class="harvest-table-wrap" id="harvest-table-wrap">
+              <table class="harvest-table" id="harvest-table">
+                <thead id="harvest-thead"></thead>
+                <tbody id="harvest-tbody"></tbody>
+              </table>
+              <div class="no-results" id="no-results" style="display:none">Нет культур с активностью в выбранный месяц</div>
+            </div>
+            <div class="cal-legend">
+              <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"></div>Пик сезона</div>
+              <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,#f39c12,#f1c40f)"></div>Начало/конец</div>
+              <div class="leg-item"><div class="leg-dot" style="background:var(--border-color);opacity:0.3"></div>Нет активности</div>
+              <div class="leg-item"><div class="leg-dot" style="background:transparent;border:2px solid rgba(255,205,50,0.7)"></div>Текущий месяц</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -441,9 +486,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 </div>
 
 <script>
-// ════════════════════════════════════════
-//  THEME TOGGLE
-// ════════════════════════════════════════
+// ============================================
+//  THEME, BACKGROUND, PARTICLES, NAVIGATION
+// ============================================
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -455,9 +500,6 @@ function toggleTheme(){
   updateBG();
 }
 
-// ════════════════════════════════════════
-//  BACKGROUND & PARTICLES
-// ════════════════════════════════════════
 const bgEl=document.getElementById('bg-main');
 const pcan=document.getElementById('particles'),pctx=pcan.getContext('2d');
 let pts=[],praf;
@@ -503,9 +545,6 @@ function animP(){
 }
 setInterval(()=>{const n=new Date();const el=document.getElementById('s-time');if(el)el.textContent=el.textContent.replace(/\d{2}:\d{2}/,n.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}))},30000);
 
-// ════════════════════════════════════════
-//  NAVIGATION
-// ════════════════════════════════════════
 const inited={};
 function go(id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -515,17 +554,31 @@ function go(id){
   if(!inited[id]){
     if(id==='climate')climateInit();
     if(id==='weather')wInit();
-    if(id==='harvest')hInit();
+    if(id==='harvest'){ /* инициализация будет при первом открытии через hInit() */ }
     if(id==='fishing')fishInit();
     inited[id]=true;
+  }
+  // Если это вкладка урожая, показываем разводящую, если только не был открыт календарь (это обрабатывается внутри)
+  if(id==='harvest'){
+    // При переходе на вкладку показываем разводящую, если только не был открыт календарь (состояние сохраняется)
+    const container = document.getElementById('harvest-container');
+    // Если календарь был открыт, оставляем, иначе показываем разводящую
+    // Но по умолчанию всегда показываем разводящую при переходе на вкладку
+    if(!container.classList.contains('calendar-mode')){
+      // уже в режиме выбора
+    } else {
+      // если был календарь, закрываем его? 
+      // Лучше при переходе на вкладку всегда показывать разводящую, чтобы не путать пользователя
+      closeHarvestCalendar();
+    }
   }
 }
 function toggleDrawer(){document.getElementById('mobile-drawer').classList.toggle('open')}
 function closeDrawer(){document.getElementById('mobile-drawer').classList.remove('open')}
 
-// ════════════════════════════════════════
-//  CLIMATE RUSSIA
-// ════════════════════════════════════════
+// ============================================
+//  CLIMATE
+// ============================================
 const CLIMATE_BASE = {
   central:     { name: 'Центральный', base: [5, 600, 75, 4], trend: 0.04 },
   northwest:   { name: 'Северо-Западный', base: [3, 700, 80, 5], trend: 0.03 },
@@ -614,9 +667,9 @@ function climateExport(){
   XLSX.writeFile(wb, `climate_${region}_${param}.xlsx`);
 }
 
-// ════════════════════════════════════════
+// ============================================
 //  WEATHER
-// ════════════════════════════════════════
+// ============================================
 const LOCS=[
   {name:'СНТ Гавриково (Бутово)',desc:'г. Москва, Бутово',lat:55.523,lon:37.582},
   {name:'Южные Горки 3',desc:'Ленинский р-н МО',lat:55.531,lon:37.665},
@@ -700,9 +753,9 @@ function prow(name,val,pct,max,color){
   return`<div class="prow"><div class="prow-head"><span class="prow-name">${name}</span><span class="prow-val">${val}</span></div><div class="pbar"><div class="pbfill" style="width:${w}%;background:${color}"></div></div></div>`;
 }
 
-// ════════════════════════════════════════
-//  HARVEST — обновлённый календарь (только текущий и будущие месяцы)
-// ════════════════════════════════════════
+// ============================================
+//  HARVEST — разводящая + календарь
+// ============================================
 const HD=[
   ['Картофель','🥔','v',[0,0,0,0,0,0,0,2,2,1,0,0]],
   ['Помидоры','🍅','v',[0,0,0,0,0,0,2,2,1,0,0,0]],
@@ -779,45 +832,122 @@ const HD=[
   ['Грецкий орех','🌰','r',[0,0,0,0,0,0,0,0,1,2,1,0]],
   ['Арахис (юг РФ)','🥜','r',[0,0,0,0,0,0,0,1,2,1,0,0]],
 ];
-let hCat='all';
-function hInit(){hRender()}
-function hFilt(c,el){hCat=c;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');hRender()}
-function hRender(){
-  const cm=new Date().getMonth(); // 0-11
-  // Определяем индексы для отображения: текущий, +1, +2 (с учётом цикличности)
-  const idx = [cm, (cm+1)%12, (cm+2)%12];
-  const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  // Заголовки
-  let headHtml = '<div></div>'; // пустая ячейка для названий культур
-  idx.forEach(i => {
-    const isCurrent = (i === cm);
-    headHtml += `<div class="mhd" style="${isCurrent ? 'color: #f39c12; font-weight: 700;' : ''}">${monthNames[i]}</div>`;
-  });
-  // Строки культур
-  const rows = hCat==='all' ? HD : HD.filter(d=>d[2]===hCat);
-  let bodyHtml = '';
-  rows.forEach(([name, emo, cat, months]) => {
-    let cells = '';
-    idx.forEach(i => {
-      const v = months[i];
-      const cls = v===2 ? 'ce cepeak' : (v===1 ? 'ce cepartial' : 'ce cempty');
-      const isCurrent = (i === cm);
-      const cur = isCurrent && v>0 ? ' cur-month' : '';
-      cells += `<div class="cat-${cat} ${cls}${cur}"></div>`;
-    });
-    bodyHtml += `<div class="crow"><div class="cname"><span>${emo}</span>${name}</div>${cells}</div>`;
-  });
-  // Собираем таблицу
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = `<div class="cal-head" style="grid-template-columns:128px repeat(${idx.length},1fr);">${headHtml}</div>
-                    <div class="cal-body">${bodyHtml}</div>`;
-}
-// Вызовем hRender при инициализации и при смене фильтра
-// уже используется в hFilt и hInit
 
-// ════════════════════════════════════════
-//  FISHING (без изменений)
-// ════════════════════════════════════════
+let hCat='all';
+let hMonth='all';
+
+function hInit(){
+  // При инициализации показываем разводящую
+  document.getElementById('harvest-container').classList.remove('calendar-mode');
+  // но если пришли с фильтром (из главной), то можно открыть календарь?
+  // Эту логику перенесём в openHarvestCalendar
+}
+
+function openHarvestCalendar(category){
+  // Переключаем режим на календарь
+  const container = document.getElementById('harvest-container');
+  container.classList.add('calendar-mode');
+  // Устанавливаем фильтр категории
+  hCat = category;
+  // Обновляем кнопки категорий
+  document.querySelectorAll('.cat-strip .cbtn').forEach(b=>{
+    b.classList.remove('active');
+    if(b.dataset.cat === category) b.classList.add('active');
+  });
+  // Сбрасываем фильтр месяца на "Все"
+  hMonth = 'all';
+  document.querySelectorAll('.month-filter .month-btn').forEach(b=>b.classList.remove('active'));
+  const allBtn = document.querySelector('.month-filter .month-btn[data-month="all"]');
+  if(allBtn) allBtn.classList.add('active');
+  // Перерисовываем таблицу
+  hRender();
+}
+
+function closeHarvestCalendar(){
+  const container = document.getElementById('harvest-container');
+  container.classList.remove('calendar-mode');
+}
+
+function hFilt(cat, el){
+  hCat=cat;
+  document.querySelectorAll('.cat-strip .cbtn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  hRender();
+}
+
+function hSelectMonth(month, el){
+  hMonth=month;
+  document.querySelectorAll('.month-filter .month-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  hRender();
+}
+
+function hRender(){
+  const cm = new Date().getMonth();
+  const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  let rows = hCat==='all' ? HD : HD.filter(d=>d[2]===hCat);
+  const selectedMonth = hMonth;
+  if(selectedMonth !== 'all'){
+    rows = rows.filter(row => row[3][selectedMonth] > 0);
+  }
+
+  const thead = document.getElementById('harvest-thead');
+  let headerHtml = `<tr><th style="text-align:left;min-width:140px;">Культура</th>`;
+  for(let m=0; m<12; m++){
+    const isCurrent = (m === cm);
+    headerHtml += `<th class="${isCurrent ? 'current-month' : ''}">${monthNames[m]}</th>`;
+  }
+  headerHtml += `</tr>`;
+  thead.innerHTML = headerHtml;
+
+  const tbody = document.getElementById('harvest-tbody');
+  const noResults = document.getElementById('no-results');
+
+  if(rows.length === 0){
+    tbody.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+
+  let bodyHtml = '';
+  rows.forEach(row => {
+    const [name, emo, cat, months] = row;
+    bodyHtml += `<tr class="crop-row">`;
+    bodyHtml += `<td class="crop-name"><span class="crop-emo">${emo}</span>${name}</td>`;
+    for(let m=0; m<12; m++){
+      const val = months[m];
+      const isCurrent = (m === cm);
+      let cls = 'activity-cell ';
+      if(val === 2) cls += 'peak';
+      else if(val === 1) cls += 'partial';
+      else cls += 'none';
+      if(isCurrent && val > 0) cls += ' current-highlight';
+      bodyHtml += `<td><div class="${cls}"></div></td>`;
+    }
+    bodyHtml += `</tr>`;
+  });
+  tbody.innerHTML = bodyHtml;
+
+  // Обновляем класс current для кнопок месяцев
+  document.querySelectorAll('.month-filter .month-btn').forEach(btn => {
+    const m = btn.dataset.month;
+    btn.classList.remove('current');
+    if(m === 'all') {
+      if(selectedMonth === 'all') btn.classList.add('active');
+      else btn.classList.remove('active');
+    } else {
+      if(parseInt(m) === cm) btn.classList.add('current');
+      if(selectedMonth !== 'all' && parseInt(m) === selectedMonth) btn.classList.add('active');
+      else if(selectedMonth === 'all' && parseInt(m) === cm) btn.classList.add('active');
+    }
+  });
+}
+
+// ============================================
+//  FISHING
+// ============================================
 const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 const ZONES = {
   moscow: { name:'Рузское водохранилище (МО)', desc:'Щука, судак, лещ, плотва, карп.', color:'#1a9850', points:[{lat:55.65,lng:36.10,label:'Рузское вдхр.'}], fish:[
@@ -973,9 +1103,9 @@ function fishClick(zid,fi,el){
 }
 function fishSetMonth(i,el){fishMonth=i;document.querySelectorAll('.mchip').forEach((c,j)=>c.classList.toggle('active',j===i));if(selZone)renderZoneCard(selZone);}
 
-// ════════════════════════════════════════
+// ============================================
 //  BOOT
-// ════════════════════════════════════════
+// ============================================
 updateBG();
 </script>
 </body>

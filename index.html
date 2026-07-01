@@ -707,39 +707,49 @@ let wFC = [null, null, null];
 let weatherLoaded = false;
 
 // Парсинг Гисметео через прокси allorigins
-async function fetchGismeteo(lat, lon){
+async function fetchWeatherApi(lat, lon) {
+  const url =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${lat}` +
+    `&longitude=${lon}` +
+    `&daily=temperature_2m_max,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_mean,pressure_msl_mean,weather_code` +
+    `&timezone=Europe/Moscow` +
+    `&forecast_days=7`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Weather API error');
+
+  const json = await resp.json();
+  const d = json.daily;
+
+  return d.time.map((date, i) => ({
+    date: new Date(date),
+    t: Math.round(d.temperature_2m_max[i]),
+    w: Math.round(d.wind_speed_10m_max[i] / 3.6), // км/ч → м/с
+    p: +(d.precipitation_sum[i] || 0).toFixed(1),
+    hm: Math.round(d.relative_humidity_2m_mean?.[i] ?? 65),
+    pr: Math.round((d.pressure_msl_mean?.[i] ?? 1013) * 0.75006), // гПа → мм рт. ст.
+    icon: weatherIcon(d.weather_code[i])
+  }));
+}
+
+function weatherIcon(code) {
+  if ([0].includes(code)) return '☀️';
+  if ([1, 2].includes(code)) return '🌤️';
+  if ([3].includes(code)) return '☁️';
+  if ([45, 48].includes(code)) return '🌫️';
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧️';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return '❄️';
+  if ([95, 96, 99].includes(code)) return '⛈️';
+  return '⛅';
+}
+
+async function fetchWeatherForLocation(locIdx) {
   try {
-    // Город по координатам (можно захардкодить для наших локаций)
-    const cityMap = {
-      '55.523': 'moscow',
-      '55.531': 'moscow',
-      '55.601': 'moscow'
-    };
-    const city = cityMap[lat.toFixed(3)] || 'moscow';
-    const url = `https://www.gismeteo.ru/weather-${city}-4368/`;
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const resp = await fetch(proxy);
-    if(!resp.ok) throw new Error('Proxy error');
-    const data = await resp.json();
-    const html = data.contents;
-    // Парсим температуру, осадки, ветер, влажность, давление через регулярки
-    const tempMatch = html.match(/<span class="unit unit_temperature_c">([+-]?\d+)<\/span>/);
-    const temp = tempMatch ? parseFloat(tempMatch[1]) : 5;
-    // Это упрощённый пример, реальный парсинг требует анализа структуры Гисметео
-    // Для демонстрации вернём сгенерированные данные с небольшой корреляцией
-    return Array.from({length:7}, (_,i) => {
-      const d = new Date(); d.setDate(d.getDate()+i);
-      const t = +(temp + (Math.random()-0.5)*4).toFixed(1);
-      const w = +(2 + Math.random()*8).toFixed(1);
-      const p = +(Math.random()<0.3 ? Math.random()*5 : 0).toFixed(1);
-      const hm = Math.round(55 + Math.random()*30);
-      const pr = Math.round(745 + (Math.random()-0.5)*20);
-      const icon = p>3 ? '🌧️' : p>1 ? '🌦️' : p>0 ? '⛅' : w>6 ? '🌤️' : '☀️';
-      return {date:d, t, w, p, hm, pr, icon};
-    });
-  } catch(e){
-    console.warn('Парсинг Гисметео не удался:', e);
-    return null;
+    return await fetchWeatherApi(LOCS[locIdx].lat, LOCS[locIdx].lon);
+  } catch (e) {
+    console.error('Погода не загрузилась:', e);
+    return [];
   }
 }
 
